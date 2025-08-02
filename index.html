@@ -1,0 +1,3192 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oracle AI Dream Interpreter</title>
+    <!-- Favicon as SVG - A simple moon icon -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z'/%3E%3C/svg%3E" type="image/svg+xml">
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for a clean, modern typeface -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons (microphone, play, pause, stop, etc.) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=pub-9390709574907914"
+     crossorigin="anonymous"></script>
+    <style>
+        /* Apply Inter font and dark background to the entire body */
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #e2e8f0; /* Light gray text for contrast */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column; /* Ensure content stacks vertically */
+            align-items: center; /* Center horizontally */
+            justify-content: flex-start; /* Align items to the top initially */
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative; /* For z-index context */
+            z-index: 1; /* Ensure content is above background */
+            overflow-y: auto; /* Allow scrolling if content overflows */
+        }
+
+        /* Full-screen background image container */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://placehold.co/1920x1080/0d1117/e6edf3?text=Default+Moon+Background'); /* Default placeholder */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: brightness(0.4) blur(3px); /* Darken and blur the background for better readability */
+            z-index: 0; /* Place behind content */
+            transition: background-image 0.5s ease-in-out; /* Smooth background transitions */
+        }
+
+        /* Main container styling */
+        .app-container {
+            background-color: #161b22; /* Slightly lighter dark for the app card */
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            z-index: 10; /* Ensure it's above the background */
+            margin-top: 20px; /* Add some top margin */
+            margin-bottom: 20px; /* Add some bottom margin */
+        }
+
+        /* Title styling */
+        .app-title {
+            font-size: 2.5rem; /* Larger title */
+            font-weight: 700; /* Bold */
+            color: #a78bfa; /* Purple 400 */
+            text-align: center;
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em; /* Slightly tighter letter spacing */
+        }
+
+        /* Input area styling */
+        .input-area textarea, .input-area input[type="text"] {
+            background-color: #0d1117; /* Darker input background */
+            border: 1px solid #30363d; /* Subtle border */
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.2s ease;
+        }
+        .input-area textarea:focus, .input-area input[type="text"]:focus {
+            outline: none;
+            border-color: #a78bfa; /* Highlight on focus */
+        }
+
+        /* Button styling */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #8b5cf6; /* Violet 500 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #7c3aed; /* Violet 600 */
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        .btn-secondary {
+            background-color: #30363d; /* Gray 800 */
+            color: #c9d1d9; /* Light gray */
+        }
+        .btn-secondary:hover {
+            background-color: #444c56; /* Gray 700 */
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+        .btn-secondary:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #8b5cf6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Interpretation and history styling */
+        .interpretation-output, .history-section, .premium-feature-card {
+            background-color: #0d1117; /* Darker background */
+            border: 1px solid #30363d;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            min-height: 150px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        .interpretation-output p, .history-item {
+            line-height: 1.6;
+        }
+
+        /* History item styling */
+        .history-item {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed #30363d;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .history-item strong {
+            color: #a78bfa;
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #161b22; /* Darker background for modal */
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #e6edf3;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Ad modal specific styling */
+        #adModal .progress-bar-container {
+            width: 100%;
+            background-color: #30363d;
+            border-radius: 0.5rem;
+            height: 10px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+        #adModal .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #8b5cf6;
+            border-radius: 0.5rem;
+            transition: width 0.1s linear;
+        }
+
+        /* Gallery background image grid */
+        #galleryBackgroundsGrid img {
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+        #galleryBackgroundsGrid img:hover {
+            border-color: #8b5cf6;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 1.5rem;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+            .app-title {
+                font-size: 2rem;
+            }
+            .btn {
+                width: 100%; /* Full width buttons on small screens */
+            }
+            .button-group {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+        }
+
+        /* New styles for locked features */
+        .feature-locked {
+            opacity: 0.4;
+            pointer-events: none; /* Disables interaction */
+            cursor: not-allowed;
+            position: relative; /* For the overlay */
+        }
+        .feature-locked::after {
+            content: 'Upgrade to Unlock';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 0.75rem;
+            z-index: 10; /* Above the content */
+        }
+        .btn.feature-locked::after { /* Specific override for buttons */
+            content: 'Upgrade to Unlock';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 0.75rem;
+            z-index: 10;
+            white-space: nowrap; /* Prevent text wrapping */
+            font-size: 0.9em;
+            padding: 0.5rem;
+        }
+        .premium-journaling-fields-container { /* Specific container for journaling fields */
+            position: relative;
+        }
+        .premium-journaling-fields-container.feature-locked::after {
+            content: 'Premium Feature: Upgrade to Unlock';
+            font-size: 1.2em;
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Full-screen background container -->
+    <div class="background-container" id="backgroundContainer"></div>
+
+    <!-- Main Application Container -->
+    <div class="app-container">
+        <h1 class="app-title" id="appTitle">Oracle AI Dream Interpreter</h1>
+        <!-- Firebase Auth Controls -->
+        <!-- Firebase Auth Controls -->
+<div id="authControls" class="flex flex-col md:flex-row justify-end items-center w-full mb-4">
+    <button id="googleSignInBtn" class="btn btn-secondary">
+        <i class="fab fa-google"></i> <span data-lang-key="sign_in_google">Sign in with Google</span>
+    </button>
+    <div id="userSignedInInfo" class="hidden text-sm text-gray-400 flex items-center gap-2">
+        <img id="userProfilePic" class="w-8 h-8 rounded-full" src="https://via.placeholder.com/40" alt="Profile">
+        Signed in as <span id="userDisplayName" class="font-semibold text-purple-300">...</span>
+        <button id="signOutBtn" class="btn btn-secondary ml-2">Sign Out</button>
+    </div>
+</div>
+
+        <!-- Language and Subscription Status -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+            <div class="flex items-center gap-2">
+                <label for="languageSelect" class="text-gray-400" data-lang-key="select_language">Select Language:</label>
+                <select id="languageSelect" class="bg-gray-700 text-white rounded-md p-2">
+                    <option value="en" data-lang-key="english">English</option>
+                    <option value="es" data-lang-key="spanish">Spanish</option>
+                    <option value="fr" data-lang-key="french">French</option>
+                    <option value="de" data-lang-key="german">German</option>
+                    <option value="el" data-lang-key="greek">Greek</option>
+                    <option value="zh-Hans" data-lang-key="chinese_simplified">Simplified Chinese</option>
+                    <option value="hi" data-lang-key="hindi">Hindi</option>
+                    <option value="ar" data-lang-key="arabic">Arabic</option>
+                    <option value="pt" data-lang-key="portuguese">Portuguese</option>
+                    <option value="ru" data-lang-key="russian">Russian</option>
+                    <option value="ja" data-lang-key="japanese">Japanese</option>
+                    <option value="ko" data-lang-key="korean">Korean</option>
+                    <option value="it" data-lang-key="italian">Italian</option>
+                    <option value="tr" data-lang-key="turkish">Turkish</option>
+                    <option value="nl" data-lang-key="dutch">Dutch</option>
+                    <option value="pl" data-lang-key="polish">Polish</option>
+                    <option value="sv" data-lang-key="swedish">Swedish</option>
+                </select>
+            </div>
+            <div class="text-center text-sm text-gray-400">
+                <span data-lang-key="your_session_id">Your Session ID:</span> <span id="userIdDisplay" class="font-mono text-purple-300 break-all">Loading...</span>
+            </div>
+            <div class="text-center text-sm text-gray-400">
+                <span id="subscriptionStatusDisplay" class="font-semibold text-green-400"></span> - <span id="interpretationsToday" class="font-semibold text-blue-400"></span>
+                <button id="managePlanBtn" class="btn btn-secondary btn-sm ml-2" data-lang-key="manage_plan">Manage Plan</button>
+            </div>
+        </div>
+
+        <!-- Dream Input Area -->
+        <div class="input-area flex flex-col gap-4">
+            <label for="dreamInput" class="text-lg font-semibold text-gray-300" data-lang-key="describe_dream">Describe Your Dream:</label>
+            <textarea id="dreamInput" placeholder="e.g., I dreamt I was flying over a city of gold..." class="w-full rounded-lg" data-lang-key="dream_input_placeholder"></textarea>
+
+            <!-- Premium Journaling Fields (initially hidden) -->
+            <div id="premiumJournalingFields" class="hidden flex flex-col gap-4 p-4 bg-gray-800 rounded-lg premium-journaling-fields-container">
+                <label for="dreamEmotions" class="text-lg font-semibold text-gray-300" data-lang-key="emotions_felt">Emotions felt during dream (comma-separated):</label>
+                <input type="text" id="dreamEmotions" placeholder="e.g., happy, anxious, confused" class="w-full rounded-lg" data-lang-key="emotions_placeholder">
+
+                <label for="dreamTags" class="text-lg font-semibold text-gray-300" data-lang-key="dream_tags">Tags (comma-separated):</label>
+                <input type="text" id="dreamTags" placeholder="e.g., flying, gold, city, adventure" class="w-full rounded-lg" data-lang-key="tags_placeholder">
+            </div>
+
+            <div class="button-group flex flex-col md:flex-row gap-4">
+                <button id="submitDreamBtn" class="btn btn-primary flex-grow">
+                    <span id="submitDreamSpinner" class="spinner hidden"></span>
+                    <span data-lang-key="interpret_dream">Interpret Dream</span>
+                </button>
+                <button id="startVoiceInputBtn" class="btn btn-secondary">
+                    <i class="fas fa-microphone"></i> <span data-lang-key="voice_input">Voice Input</span>
+                </button>
+                <button id="stopVoiceInputBtn" class="btn btn-secondary hidden">
+                    <i class="fas fa-microphone-slash"></i> <span data-lang-key="stop_voice">Stop Voice</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Interpretation Output Area -->
+        <div class="interpretation-section">
+            <h2 class="text-xl font-semibold text-gray-300 mb-4" data-lang-key="interpretation">Interpretation:</h2>
+            <div id="interpretationOutput" class="interpretation-output text-gray-200">
+                <span data-lang-key="interpretation_placeholder">Your dream interpretation will appear here.</span>
+            </div>
+            <div class="flex gap-4 mt-4">
+                <button id="playInterpretationBtn" class="btn btn-secondary flex-grow" disabled>
+                    <i class="fas fa-play"></i> <span data-lang-key="play">Play</span>
+                </button>
+                <button id="pauseInterpretationBtn" class="btn btn-secondary flex-grow" disabled>
+                    <i class="fas fa-pause"></i> <span data-lang-key="pause">Pause</span>
+                </button>
+                <button id="stopInterpretationBtn" class="btn btn-secondary flex-grow" disabled>
+                    <i class="fas fa-stop"></i> <span data-lang-key="stop">Stop</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Premium Features Section (initially hidden) -->
+        <div id="premiumFeaturesSection" class="hidden flex flex-col gap-4">
+            <h2 class="text-xl font-semibold text-gray-300 mb-2" data-lang-key="premium_features">Premium Features</h2>
+
+            <!-- Dream History Section -->
+            <div class="history-section">
+                <h3 class="text-lg font-semibold text-gray-300 mb-4" data-lang-key="dream_history">Dream History:</h3>
+                <div id="dreamHistoryList" class="history-output text-gray-200">
+                    <span data-lang-key="no_dreams_yet">No dreams interpreted yet.</span>
+                </div>
+            </div>
+
+            <!-- Simulated Premium Features -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="premium-feature-card p-4 bg-gray-800 rounded-lg text-center shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2" data-lang-key="dream_trend_analysis">Dream Trend Analysis</h3>
+                    <p class="text-gray-400 mb-4" data-lang-key="trend_analysis_desc">Identify recurring symbols and emotional patterns in your dreams.</p>
+                    <button class="btn btn-secondary" id="trendAnalysisBtn" data-lang-key="view_trends">View Trends</button>
+                </div>
+                <div class="premium-feature-card p-4 bg-gray-800 rounded-lg text-center shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2" data-lang-key="guided_dream_incubation">Guided Dream Incubation</h3>
+                    <p class="text-gray-400 mb-4" data-lang-key="incubation_desc">Techniques to influence your dreams for problem-solving or creativity.</p>
+                    <button class="btn btn-secondary" id="dreamIncubationBtn" data-lang-key="start_incubation">Start Incubation</button>
+                </div>
+                <div class="premium-feature-card p-4 bg-gray-800 rounded-lg text-center shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2" data-lang-key="dream_symbol_encyclopedia">Dream Symbol Encyclopedia</h3>
+                    <p class="text-gray-400 mb-4" data-lang-key="encyclopedia_desc">Explore the meanings of common dream symbols.</p>
+                    <button class="btn btn-secondary" id="symbolEncyclopediaBtn" data-lang-key="explore_symbols">Explore Symbols</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Background Customization Section (initially hidden) -->
+        <div id="backgroundCustomizationSection" class="hidden flex flex-col gap-4">
+            <h2 class="text-xl font-semibold text-gray-300 mb-2" data-lang-key="customize_background">Customize Background</h2>
+            <div class="premium-feature-card p-4 bg-gray-800 rounded-lg shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-300 mb-4" data-lang-key="upload_custom_background">Upload Custom Background (Max 1MB):</h3>
+                <input type="file" id="customBackgroundUpload" accept="image/*" class="w-full text-gray-300 mb-4">
+                <button class="btn btn-primary" id="uploadBackgroundBtn" data-lang-key="upload_image">Upload Image</button>
+            </div>
+            <div class="premium-feature-card p-4 bg-gray-800 rounded-lg shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-300 mb-4" data-lang-key="select_from_gallery">Select from Gallery:</h3>
+                <div id="galleryBackgroundsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Gallery images will be loaded here by JavaScript -->
+                    <p class="text-gray-400" data-lang-key="loading_gallery">Loading gallery...</p>
+                </div>
+            </div>
+            <div class="premium-feature-card p-4 bg-gray-800 rounded-lg shadow-lg text-center">
+                <h3 class="text-lg font-semibold text-gray-300 mb-4" data-lang-key="reset_background">Reset Background:</h3>
+                <button class="btn btn-secondary" id="resetBackgroundBtn" data-lang-key="reset_to_default">Reset to Default</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Messages -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalButton">&times;</span>
+            <h3 id="modalTitle" class="text-3xl font-bold text-white mb-4"></h3>
+            <p id="modalMessage" class="text-gray-300 text-lg"></p>
+            <button id="modalOkButton" class="btn btn-primary mt-6" data-lang-key="ok">OK</button>
+        </div>
+    </div>
+
+    <!-- Ad Simulation Modal -->
+    <div id="adModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-3xl font-bold text-white mb-4" data-lang-key="watch_ad">Watch a short ad to unlock full interpretation!</h3>
+            <p class="text-gray-300 text-lg" data-lang-key="ad_message">Ad playing... Please wait.</p>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="adProgressBar"></div>
+            </div>
+            <p id="adTimer" class="text-gray-400 mt-2">5</p>
+        </div>
+    </div>
+
+    <!-- Purchase Options Modal -->
+    <div id="purchaseModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closePurchaseModalButton">&times;</span>
+            <h3 class="text-3xl font-bold text-white mb-4" data-lang-key="unlock_full_access">Unlock Full Access</h3>
+            <p class="text-gray-300 text-lg mb-6" data-lang-key="choose_plan">Choose a plan to get unlimited full interpretations and premium features:</p>
+            <div class="flex flex-col gap-4">
+                <div class="bg-gray-800 p-4 rounded-lg text-left">
+                    <h4 class="text-xl font-semibold text-white mb-2" data-lang-key="one_time_purchase">One-Time Purchase</h4>
+                    <p class="text-gray-300 mb-3" data-lang-key="one_time_desc">Get full interpretations forever with a single payment.</p>
+                    <button id="buyOneTimeBtn" class="btn btn-primary w-full" data-lang-key="buy_for">Buy for €5.99</button>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-lg text-left">
+                    <h4 class="text-xl font-semibold text-white mb-2" data-lang-key="premium_subscription">Premium Monthly Subscription</h4>
+                    <p class="text-gray-300 mb-3" data-lang-key="premium_desc">Unlock full interpretations and all premium features.</p>
+                    <button id="subscribePremiumBtn" class="btn btn-primary w-full" data-lang-key="subscribe_for">Subscribe for €4.99/month</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Subscription Modal -->
+    <div id="manageSubscriptionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeManageSubscriptionModalButton">&times;</span>
+            <h3 class="text-3xl font-bold text-white mb-4" data-lang-key="manage_your_subscription">Manage Your Subscription</h3>
+            <p id="currentSubscriptionInfo" class="text-gray-300 text-lg mb-6"></p>
+            <div class="flex flex-col gap-4">
+                <button id="upgradeToProBtn" class="btn btn-primary w-full" data-lang-key="upgrade_to_pro">Upgrade to Pro (€5.99 One-Time)</button>
+                <button id="upgradeToPremiumBtn" class="btn btn-primary w-full" data-lang-key="upgrade_to_premium">Upgrade to Premium (€4.99/month)</button>
+                <button id="downgradeToFreeBtn" class="btn btn-secondary w-full" data-lang-key="downgrade_to_free">Downgrade to Free</button>
+                <button id="cancelSubscriptionBtn" class="btn bg-red-600 hover:bg-red-700 text-white w-full" data-lang-key="cancel_subscription">Cancel Subscription</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDLIg12cIXNdoXWRjdkAJ8ZQRYyhrMFPjY", // From ai.txt
+            authDomain: "ai-dream-interpreter-app.firebaseapp.com", // From ai.txt
+            projectId: "ai-dream-interpreter-app", // From ai.txt
+            storageBucket: "ai-dream-interpreter-app.firebasestorage.app", // From ai.txt
+            messagingSenderId: "921234650516", // From ai.txt
+            appId: "1:921234650516:web:c653c46d1a52d9769b8b81", // From ai.txt
+            measurementId: "G-ZN2YPPVCFY" // From ai.txt
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // DOM Elements
+        const dreamInput = document.getElementById('dreamInput');
+        const submitDreamBtn = document.getElementById('submitDreamBtn');
+        const submitDreamSpinner = document.getElementById('submitDreamSpinner');
+        const interpretationOutput = document.getElementById('interpretationOutput');
+        const playInterpretationBtn = document.getElementById('playInterpretationBtn');
+        const pauseInterpretationBtn = document.getElementById('pauseInterpretationBtn');
+        const stopInterpretationBtn = document.getElementById('stopInterpretationBtn');
+        const startVoiceInputBtn = document.getElementById('startVoiceInputBtn');
+        const stopVoiceInputBtn = document.getElementById('stopVoiceInputBtn');
+        const backgroundContainer = document.getElementById('backgroundContainer');
+        const customBackgroundUpload = document.getElementById('customBackgroundUpload');
+        const uploadBackgroundBtn = document.getElementById('uploadBackgroundBtn');
+        const galleryBackgroundsGrid = document.getElementById('galleryBackgroundsGrid');
+        const resetBackgroundBtn = document.getElementById('resetBackgroundBtn');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const subscriptionStatusDisplay = document.getElementById('subscriptionStatusDisplay');
+        const interpretationsToday = document.getElementById('interpretationsToday'); // Combined status
+        const premiumFeaturesSection = document.getElementById('premiumFeaturesSection');
+        const premiumJournalingFields = document.getElementById('premiumJournalingFields');
+        const backgroundCustomizationSection = document.getElementById('backgroundCustomizationSection');
+        const dreamHistoryList = document.getElementById('dreamHistoryList');
+        const dreamEmotions = document.getElementById('dreamEmotions');
+        const dreamTags = document.getElementById('dreamTags');
+
+        // Modals
+        const customModal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const modalOkButton = document.getElementById('modalOkButton');
+
+        const adModal = document.getElementById('adModal');
+        const adProgressBar = document.getElementById('adProgressBar');
+        const adTimerDisplay = document.getElementById('adTimer');
+
+        const purchaseModal = document.getElementById('purchaseModal');
+        const closePurchaseModalButton = document.getElementById('closePurchaseModalButton');
+        const buyOneTimeBtn = document.getElementById('buyOneTimeBtn');
+        const subscribePremiumBtn = document.getElementById('subscribePremiumBtn');
+
+        const manageSubscriptionModal = document.getElementById('manageSubscriptionModal');
+        const closeManageSubscriptionModalButton = document.getElementById('closeManageSubscriptionModalButton');
+        const currentSubscriptionInfo = document.getElementById('currentSubscriptionInfo');
+        const cancelSubscriptionBtn = document.getElementById('cancelSubscriptionBtn');
+        const upgradeToProBtn = document.getElementById('upgradeToProBtn');
+        const upgradeToPremiumBtn = document.getElementById('upgradeToPremiumBtn');
+        const downgradeToFreeBtn = document.getElementById('downgradeToFreeBtn');
+
+        // Firebase Auth elements
+        const googleSignInBtn = document.getElementById('googleSignInBtn');
+        const signOutBtn = document.getElementById('signOutBtn');
+        const userSignedInInfo = document.getElementById('userSignedInInfo');
+        const userDisplayName = document.getElementById('userDisplayName');
+        const userProfilePic = document.getElementById('userProfilePic'); // Added user profile picture
+
+        // Text-to-Speech Variables
+        let synth = window.speechSynthesis;
+        let utterance = null;
+        let isPlaying = false;
+        let currentVoice = null;
+        let voicesLoaded = false;
+
+        // Speech Recognition Variables
+        let recognition = null;
+        let isRecognizing = false;
+
+        // User State Variables
+        let currentUserId = null;
+        let userSubscription = {
+            tier: 'free', // 'free', 'pro', 'premium'
+            interpretationsUsed: 0,
+            maxInterpretations: 1, // Default for free
+            lastInterpretationDate: null // Timestamp
+        };
+        // Language variables
+        const languageSelect = document.getElementById('languageSelect');
+        let currentLanguage = localStorage.getItem('appLanguage') || 'en';
+
+        // --- Translation Object ---
+        const translations = {
+            en: {
+                app_title: "Oracle AI Dream Interpreter",
+                select_language: "Select Language:",
+                english: "English",
+                spanish: "Spanish",
+                french: "French",
+                german: "German",
+                greek: "Greek",
+                chinese_simplified: "Simplified Chinese",
+                hindi: "Hindi",
+                arabic: "Arabic",
+                portuguese: "Portuguese",
+                russian: "Russian",
+                japanese: "Japanese",
+                korean: "Korean",
+                italian: "Italian",
+                turkish: "Turkish",
+                dutch: "Dutch",
+                polish: "Polish",
+                swedish: "Swedish",
+                your_session_id: "Your Session ID:",
+                subscription_status: "Subscription:",
+                describe_dream: "Describe Your Dream:",
+                dream_input_placeholder: "e.g., I dreamt I was flying over a city of gold...",
+                emotions_felt: "Emotions felt during dream (comma-separated):",
+                emotions_placeholder: "e.g., happy, anxious, confused",
+                dream_tags: "Tags (comma-separated):",
+                tags_placeholder: "e.g., flying, gold, city, adventure",
+                interpret_dream: "Interpret Dream",
+                voice_input: "Voice Input",
+                stop_voice: "Stop Voice",
+                interpretation: "Interpretation:",
+                interpretation_placeholder: "Your dream interpretation will appear here.",
+                play: "Play",
+                pause: "Pause",
+                stop: "Stop",
+                premium_features: "Premium Features",
+                dream_history: "Dream History:",
+                no_dreams_yet: "No dreams interpreted yet.",
+                dream_trend_analysis: "Dream Trend Analysis",
+                trend_analysis_desc: "Identify recurring symbols and emotional patterns in your dreams.",
+                view_trends: "View Trends",
+                guided_dream_incubation: "Guided Dream Incubation",
+                incubation_desc: "Techniques to influence your dreams for problem-solving or creativity.",
+                start_incubation: "Start Incubation",
+                dream_symbol_encyclopedia: "Dream Symbol Encyclopedia",
+                encyclopedia_desc: "Explore the meanings of common dream symbols.",
+                explore_symbols: "Explore Symbols",
+                manage_subscription: "Manage Subscription",
+                manage_subscription_desc: "View and manage your premium subscription details.",
+                manage: "Manage",
+                customize_background: "Customize Background",
+                upload_custom_background: "Upload Custom Background (Max 1MB):",
+                upload_image: "Upload Image",
+                select_from_gallery: "Select from Gallery:",
+                loading_gallery: "Loading gallery...",
+                reset_background: "Reset Background:",
+                reset_to_default: "Reset to Default",
+                ok: "OK",
+                watch_ad: "Watch a short ad to unlock full interpretation!",
+                ad_message: "Ad playing... Please wait.",
+                unlock_full_access: "Unlock Full Access",
+                choose_plan: "Choose a plan to get unlimited full interpretations and premium features:",
+                one_time_purchase: "One-Time Purchase",
+                one_time_desc: "Get full interpretations forever with a single payment.",
+                buy_for: "Buy for €5.99",
+                premium_subscription: "Premium Monthly Subscription",
+                premium_desc: "Unlock full interpretations and all premium features.",
+                subscribe_for: "Subscribe for €4.99/month",
+                manage_your_subscription: "Manage Your Subscription",
+                current_status: "Your current subscription status:",
+                cancel_subscription: "Cancel Subscription",
+                free: "Free",
+                pro: "Pro (One-Time)",
+                premium: "Premium (Monthly)",
+                upgrade_prompt_title: "Upgrade to Unlock!",
+                upgrade_prompt_message: "You've reached your free interpretation limit or this is a premium feature. Upgrade for unlimited access and premium features!",
+                modal_error_title: "Error",
+                modal_success_title: "Success",
+                modal_upload_success: "Background image uploaded successfully!",
+                modal_reset_success: "Background image reset to default!",
+                modal_subscription_success: "Subscription status updated!",
+                modal_purchase_success: "Purchase successful! You now have full access.",
+                modal_cancel_success: "Subscription cancelled successfully.",
+                modal_invalid_image: "Invalid image file or size exceeds 1MB.",
+                modal_google_sign_in_error: "Google Sign-In Failed: ",
+                signed_in_as: "Signed in as",
+                sign_in_google: "Sign in with Google",
+                sign_out: "Sign Out",
+                manage_plan: "Manage Plan",
+                interpretations_today: "Interpretations Today:",
+                unlimited: "Unlimited",
+                upgrade_to_pro: "Upgrade to Pro (€5.99 One-Time)",
+                upgrade_to_premium: "Upgrade to Premium (€4.99/month)",
+                downgrade_to_free: "Downgrade to Free",
+                listening_to_dream: "Listening... Speak your dream.",
+                partial_interpretation_message: "This is a partial interpretation. To unlock the full interpretation, please watch a short ad or upgrade your plan."
+            },
+            es: {
+                app_title: "Intérprete de Sueños con IA Oráculo",
+                select_language: "Seleccionar Idioma:",
+                english: "Inglés",
+                spanish: "Español",
+                french: "Francés",
+                german: "Alemán",
+                greek: "Griego",
+                chinese_simplified: "Chino Simplificado",
+                hindi: "Hindi",
+                arabic: "Árabe",
+                portuguese: "Portugués",
+                russian: "Ruso",
+                japanese: "Japonés",
+                korean: "Coreano",
+                italian: "Italiano",
+                turkish: "Turco",
+                dutch: "Holandés",
+                polish: "Polaco",
+                swedish: "Sueco",
+                your_session_id: "Tu ID de Sesión:",
+                subscription_status: "Suscripción:",
+                describe_dream: "Describe Tu Sueño:",
+                dream_input_placeholder: "Ej: Soñé que volaba sobre una ciudad de oro...",
+                emotions_felt: "Emociones sentidas durante el sueño (separadas por comas):",
+                emotions_placeholder: "Ej: feliz, ansioso, confuso",
+                dream_tags: "Etiquetas (separadas por comas):",
+                tags_placeholder: "Ej: volar, oro, ciudad, aventura",
+                interpret_dream: "Interpretar Sueño",
+                voice_input: "Entrada de Voz",
+                stop_voice: "Detener Voz",
+                interpretation: "Interpretación:",
+                interpretation_placeholder: "La interpretación de tu sueño aparecerá aquí.",
+                play: "Reproducir",
+                pause: "Pausar",
+                stop: "Detener",
+                premium_features: "Características Premium",
+                dream_history: "Historial de Sueños:",
+                no_dreams_yet: "Aún no hay sueños interpretados.",
+                dream_trend_analysis: "Análisis de Tendencias de Sueños",
+                trend_analysis_desc: "Identifica símbolos recurrentes y patrones emocionales en tus sueños.",
+                view_trends: "Ver Tendencias",
+                guided_dream_incubation: "Incubación Guiada de Sueños",
+                incubation_desc: "Técnicas para influir en tus sueños para resolver problemas o la creatividad.",
+                start_incubation: "Iniciar Incubación",
+                dream_symbol_encyclopedia: "Enciclopedia de Símbolos Oníricos",
+                encyclopedia_desc: "Explora los significados de los símbolos comunes de los sueños.",
+                explore_symbols: "Explorar Símbolos",
+                manage_subscription: "Gestionar Suscripción",
+                manage_subscription_desc: "Ver y gestionar los detalles de tu suscripción premium.",
+                manage: "Gestionar",
+                customize_background: "Personalizar Fondo",
+                upload_custom_background: "Subir Fondo Personalizado (Máx 1MB):",
+                upload_image: "Subir Imagen",
+                select_from_gallery: "Seleccionar de la Galería:",
+                loading_gallery: "Cargando galería...",
+                reset_background: "Restablecer Fondo:",
+                reset_to_default: "Restablecer a Predeterminado",
+                ok: "OK",
+                watch_ad: "¡Mira un breve anuncio para desbloquear la interpretación completa!",
+                ad_message: "Anuncio reproduciéndose... Por favor, espera.",
+                unlock_full_access: "Desbloquear Acceso Completo",
+                choose_plan: "Elige un plan para obtener interpretaciones completas ilimitadas y características premium:",
+                one_time_purchase: "Compra Única",
+                one_time_desc: "Obtén interpretaciones completas para siempre con un solo pago.",
+                buy_for: "Comprar por €5.99",
+                premium_subscription: "Suscripción Mensual Premium",
+                premium_desc: "Desbloquea interpretaciones completas y todas las características premium.",
+                subscribe_for: "Suscribirse por €4.99/mes",
+                manage_your_subscription: "Gestionar Tu Suscripción",
+                current_status: "Tu estado de suscripción actual:",
+                cancel_subscription: "Cancelar Suscripción",
+                free: "Gratis",
+                pro: "Pro (Compra Única)",
+                premium: "Premium (Mensual)",
+                upgrade_prompt_title: "¡Actualiza para Desbloquear!",
+                upgrade_prompt_message: "Has alcanzado tu límite de interpretaciones gratuitas o esta es una característica premium. ¡Actualiza para acceso ilimitado y características premium!",
+                modal_error_title: "Error",
+                modal_success_title: "Éxito",
+                modal_upload_success: "¡Imagen de fondo subida correctamente!",
+                modal_reset_success: "¡Imagen de fondo restablecida a la predeterminada!",
+                modal_subscription_success: "¡Estado de la suscripción actualizado!",
+                modal_purchase_success: "¡Compra exitosa! Ahora tienes acceso completo.",
+                modal_cancel_success: "Suscripción cancelada correctamente.",
+                modal_invalid_image: "Archivo de imagen no válido o el tamaño excede 1MB.",
+                modal_google_sign_in_error: "Fallo al iniciar sesión con Google: ",
+                signed_in_as: "Sesión iniciada como",
+                sign_in_google: "Iniciar sesión con Google",
+                sign_out: "Cerrar sesión",
+                manage_plan: "Gestionar Plan",
+                interpretations_today: "Interpretaciones Hoy:",
+                unlimited: "Ilimitado",
+                upgrade_to_pro: "Actualizar a Pro (€5.99 Compra Única)",
+                upgrade_to_premium: "Actualizar a Premium (€4.99/mes)",
+                downgrade_to_free: "Cambiar a Gratuito",
+                listening_to_dream: "Escuchando... Di tu sueño.",
+                partial_interpretation_message: "Esta es una interpretación parcial. Para desbloquear la interpretación completa, por favor, mira un breve anuncio o actualiza tu plan."
+            },
+            fr: {
+                app_title: "Interprète de Rêves IA Oracle",
+                select_language: "Sélectionner la langue :",
+                english: "Anglais",
+                spanish: "Espagnol",
+                french: "Français",
+                german: "Allemand",
+                greek: "Grec",
+                chinese_simplified: "Chinois Simplifié",
+                hindi: "Hindi",
+                arabic: "Arabe",
+                portuguese: "Portugais",
+                russian: "Russe",
+                japanese: "Japonais",
+                korean: "Coréen",
+                italian: "Italien",
+                turkish: "Turc",
+                dutch: "Néerlandais",
+                polish: "Polonais",
+                swedish: "Suédois",
+                your_session_id: "Votre ID de session :",
+                subscription_status: "Abonnement :",
+                describe_dream: "Décrivez votre rêve :",
+                dream_input_placeholder: "Ex : J'ai rêvé que je volais au-dessus d'une ville d'or...",
+                emotions_felt: "Émotions ressenties pendant le rêve (séparées par des virgules) :",
+                emotions_placeholder: "Ex : heureux, anxieux, confus",
+                dream_tags: "Mots-clés (séparés par des virgules) :",
+                tags_placeholder: "Ex : voler, or, ville, aventure",
+                interpret_dream: "Interpréter le rêve",
+                voice_input: "Saisie vocale",
+                stop_voice: "Arrêter la voix",
+                interpretation: "Interprétation :",
+                interpretation_placeholder: "L'interprétation de votre rêve apparaîtra ici.",
+                play: "Jouer",
+                pause: "Pause",
+                stop: "Arrêter",
+                premium_features: "Fonctionnalités Premium",
+                dream_history: "Historique des rêves :",
+                no_dreams_yet: "Aucun rêve interprété pour l'instant.",
+                dream_trend_analysis: "Analyse des tendances de rêve",
+                trend_analysis_desc: "Identifiez les symboles récurrents et les modèles émotionnels dans vos rêves.",
+                view_trends: "Voir les tendances",
+                guided_dream_incubation: "Incubation de rêve guidée",
+                incubation_desc: "Techniques pour influencer vos rêves pour la résolution de problèmes ou la créativité.",
+                start_incubation: "Commencer l'incubation",
+                dream_symbol_encyclopedia: "Encyclopédie des symboles de rêve",
+                encyclopedia_desc: "Explorez la signification des symboles de rêve courants.",
+                explore_symbols: "Explorer les symboles",
+                manage_subscription: "Gérer l'abonnement",
+                manage_subscription_desc: "Consultez et gérez les détails de votre abonnement premium.",
+                manage: "Gérer",
+                customize_background: "Personnaliser l'arrière-plan",
+                upload_custom_background: "Télécharger un arrière-plan personnalisé (Max 1MB) :",
+                upload_image: "Télécharger l'image",
+                select_from_gallery: "Sélectionner dans la galerie :",
+                loading_gallery: "Chargement de la galerie...",
+                reset_background: "Réinitialiser l'arrière-plan :",
+                reset_to_default: "Réinitialiser par défaut",
+                ok: "OK",
+                watch_ad: "Regardez une courte publicité pour déverrouiller l'interprétation complète !",
+                ad_message: "Publicité en cours... Veuillez patienter.",
+                unlock_full_access: "Déverrouiller l'accès complet",
+                choose_plan: "Choisissez un plan pour obtenir des interprétations complètes illimitées et des fonctionnalités premium :",
+                one_time_purchase: "Achat unique",
+                one_time_desc: "Obtenez des interprétations complètes pour toujours avec un seul paiement.",
+                buy_for: "Acheter pour 5,99 €",
+                premium_subscription: "Abonnement mensuel Premium",
+                premium_desc: "Déverrouillez les interprétations complètes et toutes les fonctionnalités premium.",
+                subscribe_for: "S'abonner pour 4,99 €/mois",
+                manage_your_subscription: "Gérer votre abonnement",
+                current_status: "Votre statut d'abonnement actuel :",
+                cancel_subscription: "Annuler l'abonnement",
+                free: "Gratuit",
+                pro: "Pro (Achat unique)",
+                premium: "Premium (Mensuel)",
+                upgrade_prompt_title: "Passez au Premium !",
+                upgrade_prompt_message: "Vous avez atteint votre limite d'interprétations gratuites ou c'est une fonctionnalité premium. Passez au forfait supérieur pour un accès illimité et des fonctionnalités premium !",
+                modal_error_title: "Erreur",
+                modal_success_title: "Succès",
+                modal_upload_success: "Image d'arrière-plan téléchargée avec succès !",
+                modal_reset_success: "Image d'arrière-plan réinitialisée par défaut !",
+                modal_subscription_success: "Statut de l'abonnement mis à jour !",
+                modal_purchase_success: "Achat réussi ! Vous avez maintenant un accès complet.",
+                modal_cancel_success: "Abonnement annulé avec succès.",
+                modal_invalid_image: "Fichier image invalide ou taille supérieure à 1MB.",
+                modal_google_sign_in_error: "Échec de la connexion Google : ",
+                signed_in_as: "Connecté en tant que",
+                sign_in_google: "Se connecter avec Google",
+                sign_out: "Se déconnecter",
+                manage_plan: "Gérer le plan",
+                interpretations_today: "Interprétations Aujourd'hui :",
+                unlimited: "Illimité",
+                upgrade_to_pro: "Mettre à niveau vers Pro (5,99 € Achat unique)",
+                upgrade_to_premium: "Mettre à niveau vers Premium (4,99 €/mois)",
+                downgrade_to_free: "Passer au Gratuit",
+                listening_to_dream: "Écoute... Dites votre rêve.",
+                partial_interpretation_message: "Ceci est une interprétation partielle. Pour déverrouiller l'interprétation complète, veuillez regarder une courte publicité ou mettre à niveau votre plan."
+            },
+            de: {
+                app_title: "Oracle KI Traumdeuter",
+                select_language: "Sprache auswählen:",
+                english: "Englisch",
+                spanish: "Spanisch",
+                french: "Französisch",
+                german: "Deutsch",
+                greek: "Griechisch",
+                chinese_simplified: "Vereinfachtes Chinesisch",
+                hindi: "Hindi",
+                arabic: "Arabisch",
+                portuguese: "Portugiesisch",
+                russian: "Russisch",
+                japanese: "Japanisch",
+                korean: "Koreanisch",
+                italian: "Italienisch",
+                turkish: "Türkisch",
+                dutch: "Niederländisch",
+                polish: "Polnisch",
+                swedish: "Schwedisch",
+                your_session_id: "Ihre Sitzungs-ID:",
+                subscription_status: "Abonnement:",
+                describe_dream: "Beschreiben Sie Ihren Traum:",
+                dream_input_placeholder: "z.B. Ich träumte, ich flog über eine Stadt aus Gold...",
+                emotions_felt: "Gefühle während des Traums (Komma-getrennt):",
+                emotions_placeholder: "z.B. glücklich, ängstlich, verwirrt",
+                dream_tags: "Tags (Komma-getrennt):",
+                tags_placeholder: "z.B. fliegen, Gold, Stadt, Abenteuer",
+                interpret_dream: "Traum deuten",
+                voice_input: "Spracheingabe",
+                stop_voice: "Sprache beenden",
+                interpretation: "Deutung:",
+                interpretation_placeholder: "Ihre Traumdeutung wird hier erscheinen.",
+                play: "Abspielen",
+                pause: "Pause",
+                stop: "Stopp",
+                premium_features: "Premium-Funktionen",
+                dream_history: "Traum-Historie:",
+                no_dreams_yet: "Noch keine Träume gedeutet.",
+                dream_trend_analysis: "Traum-Trend-Analyse",
+                trend_analysis_desc: "Identifizieren Sie wiederkehrende Symbole und emotionale Muster in Ihren Träumen.",
+                view_trends: "Trends anzeigen",
+                guided_dream_incubation: "Geführte Trauminkubation",
+                incubation_desc: "Techniken, um Ihre Träume zur Problemlösung oder Kreativität zu beeinflussen.",
+                start_incubation: "Inkubation starten",
+                dream_symbol_encyclopedia: "Traumsymbol-Enzyklopädie",
+                encyclopedia_desc: "Erkunden Sie die Bedeutungen gängiger Traumsymbole.",
+                explore_symbols: "Symbole erkunden",
+                manage_subscription: "Abonnement verwalten",
+                manage_subscription_desc: "Sehen und verwalten Sie Ihre Premium-Abonnementdetails.",
+                manage: "Verwalten",
+                customize_background: "Hintergrund anpassen",
+                upload_custom_background: "Eigenen Hintergrund hochladen (Max 1MB):",
+                upload_image: "Bild hochladen",
+                select_from_gallery: "Aus Galerie auswählen:",
+                loading_gallery: "Galerie wird geladen...",
+                reset_background: "Hintergrund zurücksetzen:",
+                reset_to_default: "Auf Standard zurücksetzen",
+                ok: "OK",
+                watch_ad: "Schauen Sie eine kurze Anzeige, um die vollständige Interpretation freizuschalten!",
+                ad_message: "Anzeige wird abgespielt... Bitte warten.",
+                unlock_full_access: "Vollzugriff freischalten",
+                choose_plan: "Wählen Sie einen Plan für unbegrenzte vollständige Interpretationen und Premium-Funktionen:",
+                one_time_purchase: "Einmaliger Kauf",
+                one_time_desc: "Erhalten Sie vollständige Interpretationen für immer mit einer einmaligen Zahlung.",
+                buy_for: "Kaufen für €5.99",
+                premium_subscription: "Premium-Monatsabonnement",
+                premium_desc: "Schalten Sie vollständige Interpretationen und alle Premium-Funktionen frei.",
+                subscribe_for: "Abonnieren für €4.99/Monat",
+                manage_your_subscription: "Ihr Abonnement verwalten",
+                current_status: "Ihr aktueller Abonnementstatus:",
+                cancel_subscription: "Abonnement kündigen",
+                free: "Kostenlos",
+                pro: "Pro (Einmalig)",
+                premium: "Premium (Monatlich)",
+                upgrade_prompt_title: "Auf Premium upgraden!",
+                upgrade_prompt_message: "Sie haben Ihr kostenloses Interpretationslimit erreicht oder dies ist eine Premium-Funktion. Upgraden Sie für unbegrenzten Zugriff und Premium-Funktionen!",
+                modal_error_title: "Fehler",
+                modal_success_title: "Erfolg",
+                modal_upload_success: "Hintergrundbild erfolgreich hochgeladen!",
+                modal_reset_success: "Hintergrundbild auf Standard zurückgesetzt!",
+                modal_subscription_success: "Abonnementstatus aktualisiert!",
+                modal_purchase_success: "Kauf erfolgreich! Sie haben jetzt vollen Zugriff.",
+                modal_cancel_success: "Abonnement erfolgreich gekündigt.",
+                modal_invalid_image: "Ungültige Bilddatei oder Größe überschreitet 1MB.",
+                modal_google_sign_in_error: "Google-Anmeldung fehlgeschlagen: ",
+                signed_in_as: "Angemeldet als",
+                sign_in_google: "Mit Google anmelden",
+                sign_out: "Abmelden",
+                manage_plan: "Plan verwalten",
+                interpretations_today: "Interpretationen Heute:",
+                unlimited: "Unbegrenzt",
+                upgrade_to_pro: "Auf Pro upgraden (€5.99 Einmalig)",
+                upgrade_to_premium: "Auf Premium upgraden (€4.99/Monat)",
+                downgrade_to_free: "Auf Kostenlos downgraden",
+                listening_to_dream: "Hört zu... Sagen Sie Ihren Traum.",
+                partial_interpretation_message: "Dies ist eine teilweise Interpretation. Um die vollständige Interpretation freizuschalten, schauen Sie bitte eine kurze Anzeige oder upgraden Sie Ihren Plan."
+            },
+            el: { // Greek
+                app_title: "Ερμηνευτής Ονείρων AI Oracle",
+                select_language: "Επιλέξτε Γλώσσα:",
+                english: "Αγγλικά",
+                spanish: "Ισπανικά",
+                french: "Γαλλικά",
+                german: "Γερμανικά",
+                greek: "Ελληνικά",
+                chinese_simplified: "Απλοποιημένα Κινεζικά",
+                hindi: "Χίντι",
+                arabic: "Αραβικά",
+                portuguese: "Πορτογαλικά",
+                russian: "Ρωσικά",
+                japanese: "Ιαπωνικά",
+                korean: "Κορεάτικα",
+                italian: "Ιταλικά",
+                turkish: "Τουρκικά",
+                dutch: "Ολλανδικά",
+                polish: "Πολωνικά",
+                swedish: "Σουηδικά",
+                your_session_id: "Το αναγνωριστικό συνεδρίας σας:",
+                subscription_status: "Συνδρομή:",
+                describe_dream: "Περιγράψτε το Όνειρό σας:",
+                dream_input_placeholder: "π.χ. Ονειρεύτηκα ότι πετούσα πάνω από μια πόλη από χρυσό...",
+                emotions_felt: "Συναισθήματα που νιώσατε κατά τη διάρκεια του ονείρου (διαχωρισμένα με κόμμα):",
+                emotions_placeholder: "π.χ. χαρούμενος, ανήσυχος, μπερδεμένος",
+                dream_tags: "Ετικέτες (διαχωρισμένες με κόμμα):",
+                tags_placeholder: "π.χ. πέταγμα, χρυσός, πόλη, περιπέτεια",
+                interpret_dream: "Ερμηνεύστε το Όνειρο",
+                voice_input: "Φωνητική Είσοδος",
+                stop_voice: "Διακοπή Φωνής",
+                interpretation: "Ερμηνεία:",
+                interpretation_placeholder: "Η ερμηνεία του ονείρου σας θα εμφανιστεί εδώ.",
+                play: "Αναπαραγωγή",
+                pause: "Παύση",
+                stop: "Διακοπή",
+                premium_features: "Premium Λειτουργίες",
+                dream_history: "Ιστορικό Ονείρων:",
+                no_dreams_yet: "Δεν έχουν ερμηνευτεί όνειρα ακόμα.",
+                dream_trend_analysis: "Ανάλυση Τάσεων Ονείρων",
+                trend_analysis_desc: "Προσδιορίστε επαναλαμβανόμενα σύμβολα και συναισθηματικά μοτίβα στα όνειρά σας.",
+                view_trends: "Προβολή Τάσεων",
+                guided_dream_incubation: "Καθοδηγούμενη Επώαση Ονείρων",
+                incubation_desc: "Τεχνικές για να επηρεάσετε τα όνειρά σας για επίλυση προβλημάτων ή δημιουργικότητα.",
+                start_incubation: "Έναρξη Επώασης",
+                dream_symbol_encyclopedia: "Εγκυκλοπαίδεια Συμβόλων Ονείρων",
+                encyclopedia_desc: "Εξερευνήστε τις σημασίες των κοινών συμβόλων ονείρων.",
+                explore_symbols: "Εξερεύνηση Συμβόλων",
+                manage_subscription: "Διαχείριση Συνδρομής",
+                manage_subscription_desc: "Δείτε και διαχειριστείτε τα στοιχεία της premium συνδρομής σας.",
+                manage: "Διαχείριση",
+                customize_background: "Προσαρμογή Φόντου",
+                upload_custom_background: "Μεταφόρτωση Προσαρμοσμένου Φόντου (Μέγιστο 1MB):",
+                upload_image: "Μεταφόρτωση Εικόνας",
+                select_from_gallery: "Επιλογή από Συλλογή:",
+                loading_gallery: "Φόρτωση συλλογής...",
+                reset_background: "Επαναφορά Φόντου:",
+                reset_to_default: "Επαναφορά στην Προεπιλογή",
+                ok: "Εντάξει",
+                watch_ad: "Παρακολουθήστε μια σύντομη διαφήμιση για να ξεκλειδώσετε την πλήρη ερμηνεία!",
+                ad_message: "Η διαφήμιση παίζει... Παρακαλώ περιμένετε.",
+                unlock_full_access: "Ξεκλειδώστε την πλήρη πρόσβαση",
+                choose_plan: "Επιλέξτε ένα πρόγραμμα για απεριόριστες πλήρεις ερμηνείες και λειτουργίες premium:",
+                one_time_purchase: "Εφάπαξ Αγορά",
+                one_time_desc: "Αποκτήστε πλήρεις ερμηνείες για πάντα με μία μόνο πληρωμή.",
+                buy_for: "Αγορά για 5,99 €",
+                premium_subscription: "Μηνιαία Συνδρομή Premium",
+                premium_desc: "Ξεκλειδώστε πλήρεις ερμηνείες και όλες τις λειτουργίες premium.",
+                subscribe_for: "Εγγραφή για 4,99 €/μήνα",
+                manage_your_subscription: "Διαχείριση της συνδρομής σας",
+                current_status: "Η τρέχουσα κατάσταση της συνδρομής σας:",
+                cancel_subscription: "Ακύρωση Συνδρομής",
+                free: "Δωρεάν",
+                pro: "Pro (Εφάπαξ)",
+                premium: "Premium (Μηνιαία)",
+                upgrade_prompt_title: "Αναβάθμιση σε Premium!",
+                upgrade_prompt_message: "Έχετε φτάσει το όριο δωρεάν ερμηνειών ή αυτή είναι μια premium λειτουργία. Αναβαθμίστε για απεριόριστη πρόσβαση και λειτουργίες premium!",
+                modal_error_title: "Σφάλμα",
+                modal_success_title: "Επιτυχία",
+                modal_upload_success: "Η εικόνα φόντου μεταφορτώθηκε επιτυχώς!",
+                modal_reset_success: "Η εικόνα φόντου επανήλθε στην προεπιλογή!",
+                modal_subscription_success: "Η κατάσταση συνδρομής ενημερώθηκε!",
+                modal_purchase_success: "Επιτυχής αγορά! Έχετε τώρα πλήρη πρόσβαση.",
+                modal_cancel_success: "Η συνδρομή ακυρώθηκε επιτυχώς.",
+                modal_invalid_image: "Μη έγκυρο αρχείο εικόνας ή το μέγεθος υπερβαίνει το 1MB.",
+                modal_google_sign_in_error: "Αποτυχία σύνδεσης Google: ",
+                signed_in_as: "Συνδεδεμένος ως",
+                sign_in_google: "Σύνδεση με Google",
+                sign_out: "Αποσύνδεση",
+                manage_plan: "Διαχείριση Προγράμματος",
+                interpretations_today: "Ερμηνείες Σήμερα:",
+                unlimited: "Απεριόριστο",
+                upgrade_to_pro: "Αναβάθμιση σε Pro (€5.99 Εφάπαξ)",
+                upgrade_to_premium: "Αναβάθμιση σε Premium (€4.99/μήνα)",
+                downgrade_to_free: "Υποβάθμιση σε Δωρεάν",
+                listening_to_dream: "Ακούω... Πείτε το όνειρό σας.",
+                partial_interpretation_message: "Αυτή είναι μια μερική ερμηνεία. Για να ξεκλειδώσετε την πλήρη ερμηνεία, παρακαλώ παρακολουθήστε μια σύντομη διαφήμιση ή αναβαθμίστε το πρόγραμμά σας."
+            },
+            "zh-Hans": { // Simplified Chinese
+                app_title: "神谕AI解梦器",
+                select_language: "选择语言：",
+                english: "英语",
+                spanish: "西班牙语",
+                french: "法语",
+                german: "德语",
+                greek: "希腊语",
+                chinese_simplified: "简体中文",
+                hindi: "印地语",
+                arabic: "阿拉伯语",
+                portuguese: "葡萄牙语",
+                russian: "俄语",
+                japanese: "日语",
+                korean: "韩语",
+                italian: "意大利语",
+                turkish: "土耳其语",
+                dutch: "荷兰语",
+                polish: "波兰语",
+                swedish: "瑞典语",
+                your_session_id: "您的会话ID：",
+                subscription_status: "订阅：",
+                describe_dream: "描述您的梦境：",
+                dream_input_placeholder: "例如：我梦到我飞过一个黄金城市...",
+                emotions_felt: "梦中感受到的情绪（逗号分隔）：",
+                emotions_placeholder: "例如：高兴，焦虑，困惑",
+                dream_tags: "标签（逗号分隔）：",
+                tags_placeholder: "例如：飞行，黄金，城市，冒险",
+                interpret_dream: "解读梦境",
+                voice_input: "语音输入",
+                stop_voice: "停止语音",
+                interpretation: "解读：",
+                interpretation_placeholder: "您的梦境解读将显示在此处。",
+                play: "播放",
+                pause: "暂停",
+                stop: "停止",
+                premium_features: "高级功能",
+                dream_history: "梦境历史：",
+                no_dreams_yet: "尚未解读任何梦境。",
+                dream_trend_analysis: "梦境趋势分析",
+                trend_analysis_desc: "识别梦境中重复出现的符号和情感模式。",
+                view_trends: "查看趋势",
+                guided_dream_incubation: "引导式梦境孵化",
+                incubation_desc: "影响梦境以解决问题或激发创造力的技巧。",
+                start_incubation: "开始孵化",
+                dream_symbol_encyclopedia: "梦境符号百科",
+                encyclopedia_desc: "探索常见梦境符号的含义。",
+                explore_symbols: "探索符号",
+                manage_subscription: "管理订阅",
+                manage_subscription_desc: "查看和管理您的高级订阅详情。",
+                manage: "管理",
+                customize_background: "自定义背景",
+                upload_custom_background: "上传自定义背景（最大1MB）：",
+                upload_image: "上传图片",
+                select_from_gallery: "从图库选择：",
+                loading_gallery: "正在加载图库...",
+                reset_background: "重置背景：",
+                reset_to_default: "重置为默认",
+                ok: "确定",
+                watch_ad: "观看短广告以解锁完整解读！",
+                ad_message: "广告播放中...请稍候。",
+                unlock_full_access: "解锁完整访问",
+                choose_plan: "选择一个计划以获得无限次完整解读和高级功能：",
+                one_time_purchase: "一次性购买",
+                one_time_desc: "一次性付款即可永久获得完整解读。",
+                buy_for: "购买 €5.99",
+                premium_subscription: "高级月度订阅",
+                premium_desc: "解锁完整解读和所有高级功能。",
+                subscribe_for: "订阅 €4.99/月",
+                manage_your_subscription: "管理您的订阅",
+                current_status: "您当前的订阅状态：",
+                cancel_subscription: "取消订阅",
+                free: "免费",
+                pro: "专业版（一次性）",
+                premium: "高级版（每月）",
+                upgrade_prompt_title: "升级以解锁！",
+                upgrade_prompt_message: "您已达到免费解读限制或这是高级功能。升级以获得无限访问和高级功能！",
+                modal_error_title: "错误",
+                modal_success_title: "成功",
+                modal_upload_success: "背景图片上传成功！",
+                modal_reset_success: "背景图片已重置为默认！",
+                modal_subscription_success: "订阅状态已更新！",
+                modal_purchase_success: "购买成功！您现在拥有完整访问权限。",
+                modal_cancel_success: "订阅已成功取消。",
+                modal_invalid_image: "无效的图片文件或大小超过1MB。",
+                modal_google_sign_in_error: "Google登录失败： ",
+                signed_in_as: "登录为",
+                sign_in_google: "使用Google登录",
+                sign_out: "退出",
+                manage_plan: "管理计划",
+                interpretations_today: "今日解读：",
+                unlimited: "无限",
+                upgrade_to_pro: "升级到专业版（€5.99一次性）",
+                upgrade_to_premium: "升级到高级版（€4.99/月）",
+                downgrade_to_free: "降级到免费版",
+                listening_to_dream: "正在聆听...请说出您的梦境。",
+                partial_interpretation_message: "这是一部分解读。要解锁完整解读，请观看短广告或升级您的计划。"
+            },
+            hi: { // Hindi
+                app_title: "ओरेकल एआई स्वप्न दुभाषिया",
+                select_language: "भाषा चुनें:",
+                english: "अंग्रेजी",
+                spanish: "स्पेनिश",
+                french: "फ्रेंच",
+                german: "जर्मन",
+                greek: "ग्रीक",
+                chinese_simplified: "सरलीकृत चीनी",
+                hindi: "हिंदी",
+                arabic: "अरबी",
+                portuguese: "पुर्तगाली",
+                russian: "रूसी",
+                japanese: "जापानी",
+                korean: "कोरियाई",
+                italian: "इतालवी",
+                turkish: "तुर्की",
+                dutch: "डच",
+                polish: "पोलिश",
+                swedish: "स्वीडिश",
+                your_session_id: "आपकी सत्र आईडी:",
+                subscription_status: "सदस्यता:",
+                describe_dream: "अपने सपने का वर्णन करें:",
+                dream_input_placeholder: "उदा. मैंने सपना देखा कि मैं सोने के शहर के ऊपर उड़ रहा था...",
+                emotions_felt: "सपने के दौरान महसूस की गई भावनाएँ (कॉमा से अलग करें):",
+                emotions_placeholder: "उदा. खुश, चिंतित, भ्रमित",
+                dream_tags: "टैग (कॉमा से अलग करें):",
+                tags_placeholder: "उदा. उड़ना, सोना, शहर, रोमांच",
+                interpret_dream: "सपने की व्याख्या करें",
+                voice_input: "ध्वनि इनपुट",
+                stop_voice: "ध्वनि रोकें",
+                interpretation: "व्याख्या:",
+                interpretation_placeholder: "आपके सपने की व्याख्या यहां दिखाई देगी।",
+                play: "चलाएं",
+                pause: "रोकें",
+                stop: "बंद करें",
+                premium_features: "प्रीमियम सुविधाएँ",
+                dream_history: "स्वप्न इतिहास:",
+                no_dreams_yet: "अभी तक कोई सपना व्याख्या नहीं किया गया है।",
+                dream_trend_analysis: "स्वप्न प्रवृत्ति विश्लेषण",
+                trend_analysis_desc: "अपने सपनों में दोहराए जाने वाले प्रतीकों और भावनात्मक पैटर्नों को पहचानें।",
+                view_trends: "प्रवृत्तियां देखें",
+                guided_dream_incubation: "निर्देशित स्वप्न ऊष्मायन",
+                incubation_desc: "समस्या-समाधान या रचनात्मकता के लिए अपने सपनों को प्रभावित करने की तकनीकें।",
+                start_incubation: "ऊष्मायन शुरू करें",
+                dream_symbol_encyclopedia: "स्वप्न प्रतीक विश्वकोश",
+                encyclopedia_desc: "सामान्य स्वप्न प्रतीकों के अर्थ खोजें।",
+                explore_symbols: "प्रतीकों का अन्वेषण करें",
+                manage_subscription: "सदस्यता प्रबंधित करें",
+                manage_subscription_desc: "अपनी प्रीमियम सदस्यता विवरण देखें और प्रबंधित करें।",
+                manage: "प्रबंधित करें",
+                customize_background: "पृष्ठभूमि अनुकूलित करें",
+                upload_custom_background: "कस्टम पृष्ठभूमि अपलोड करें (अधिकतम 1MB):",
+                upload_image: "छवि अपलोड करें",
+                select_from_gallery: "गैलरी से चुनें:",
+                loading_gallery: "गैलरी लोड हो रही है...",
+                reset_background: "पृष्ठभूमि रीसेट करें:",
+                reset_to_default: "डिफ़ॉल्ट पर रीसेट करें",
+                ok: "ठीक है",
+                watch_ad: "पूर्ण व्याख्या को अनलॉक करने के लिए एक छोटा विज्ञापन देखें!",
+                ad_message: "विज्ञापन चल रहा है... कृपया प्रतीक्षा करें।",
+                unlock_full_access: "पूर्ण पहुंच अनलॉक करें",
+                choose_plan: "असीमित पूर्ण व्याख्याओं और प्रीमियम सुविधाओं को प्राप्त करने के लिए एक योजना चुनें:",
+                one_time_purchase: "एकल खरीद",
+                one_time_desc: "एकल भुगतान के साथ हमेशा के लिए पूर्ण व्याख्याएं प्राप्त करें।",
+                buy_for: "€5.99 में खरीदें",
+                premium_subscription: "प्रीमियम मासिक सदस्यता",
+                premium_desc: "पूर्ण व्याख्याओं और सभी प्रीमियम सुविधाओं को अनलॉक करें।",
+                subscribe_for: "€4.99/माह पर सदस्यता लें",
+                manage_your_subscription: "अपनी सदस्यता प्रबंधित करें",
+                current_status: "आपकी वर्तमान सदस्यता स्थिति:",
+                cancel_subscription: "सदस्यता रद्द करें",
+                free: "मुफ़्त",
+                pro: "प्रो (एकल)",
+                premium: "प्रीमियम (मासिक)",
+                upgrade_prompt_title: "अनलॉक करने के लिए अपग्रेड करें!",
+                upgrade_prompt_message: "आप अपनी मुफ्त व्याख्या सीमा तक पहुँच चुके हैं या यह एक प्रीमियम सुविधा है। असीमित पहुंच और प्रीमियम सुविधाओं के लिए अपग्रेड करें!",
+                modal_error_title: "त्रुटि",
+                modal_success_title: "सफलता",
+                modal_upload_success: "पृष्ठभूमि छवि सफलतापूर्वक अपलोड की गई!",
+                modal_reset_success: "पृष्ठभूमि छवि डिफ़ॉल्ट पर रीसेट की गई!",
+                modal_subscription_success: "सदस्यता स्थिति अपडेट की गई!",
+                modal_purchase_success: "खरीद सफल! आपके पास अब पूर्ण पहुंच है।",
+                modal_cancel_success: "सदस्यता सफलतापूर्वक रद्द की गई।",
+                modal_invalid_image: "अमान्य छवि फ़ाइल या आकार 1MB से अधिक है।",
+                modal_google_sign_in_error: "Google साइन-इन विफल: ",
+                signed_in_as: "के रूप में साइन इन किया गया",
+                sign_in_google: "Google के साथ साइन इन करें",
+                sign_out: "साइन आउट करें",
+                manage_plan: "योजना प्रबंधित करें",
+                interpretations_today: "आज की व्याख्याएं:",
+                unlimited: "असीमित",
+                upgrade_to_pro: "प्रो में अपग्रेड करें (€5.99 एकल)",
+                upgrade_to_premium: "प्रीमियम में अपग्रेड करें (€4.99/माह)",
+                downg्रेड_to_free: "मुफ़्त में डाउनग्रेड करें",
+                listening_to_dream: "सुन रहा हूँ... अपना सपना बोलें।",
+                partial_interpretation_message: "यह एक आंशिक व्याख्या है। पूर्ण व्याख्या को अनलॉक करने के लिए, कृपया एक छोटा विज्ञापन देखें या अपनी योजना अपग्रेड करें।"
+            },
+            ar: { // Arabic
+                app_title: "مفسر أحلام الذكاء الاصطناعي أوراكل",
+                select_language: "اختر اللغة:",
+                english: "الإنجليزية",
+                spanish: "الإسبانية",
+                french: "الفرنسية",
+                german: "الألمانية",
+                greek: "اليونانية",
+                chinese_simplified: "الصينية المبسطة",
+                hindi: "الهندية",
+                arabic: "العربية",
+                portuguese: "البرتغالية",
+                russian: "الروسية",
+                japanese: "اليابانية",
+                korean: "الكورية",
+                italian: "الإيطالية",
+                turkish: "التركية",
+                dutch: "الهولندية",
+                polish: "البولندية",
+                swedish: "السويدية",
+                your_session_id: "معرف الجلسة الخاص بك:",
+                subscription_status: "الاشتراك:",
+                describe_dream: "صف حلمك:",
+                dream_input_placeholder: "مثال: حلمت أنني كنت أحلق فوق مدينة من الذهب...",
+                emotions_felt: "المشاعر التي شعرت بها أثناء الحلم (مفصولة بفاصلة):",
+                emotions_placeholder: "مثال: سعيد، قلق، مشوش",
+                dream_tags: "الكلمات الدالة (مفصولة بفاصلة):",
+                tags_placeholder: "مثال: طيران، ذهب، مدينة، مغامرة",
+                interpret_dream: "تفسير الحلم",
+                voice_input: "إدخال صوتي",
+                stop_voice: "إيقاف الصوت",
+                interpretation: "التفسير:",
+                interpretation_placeholder: "سيظهر تفسير حلمك هنا.",
+                play: "تشغيل",
+                pause: "إيقاف مؤقت",
+                stop: "إيقاف",
+                premium_features: "الميزات المميزة",
+                dream_history: "تاريخ الأحلام:",
+                no_dreams_yet: "لم يتم تفسير أي أحلام بعد.",
+                dream_trend_analysis: "تحليل اتجاهات الأحلام",
+                trend_analysis_desc: "تحديد الرموز المتكررة والأنماط العاطفية في أحلامك.",
+                view_trends: "عرض الاتجاهات",
+                guided_dream_incubation: "تفسير الأحلام الموجه",
+                incubation_desc: "تقنيات للتأثير على أحلامك لحل المشكلات أو الإبداع.",
+                start_incubation: "بدء التفسير",
+                dream_symbol_encyclopedia: "موسوعة رموز الأحلام",
+                encyclopedia_desc: "استكشاف معاني رموز الأحلام الشائعة.",
+                explore_symbols: "استكشاف الرموز",
+                manage_subscription: "إدارة الاشتراك",
+                manage_subscription_desc: "عرض وإدارة تفاصيل اشتراكك المميز.",
+                manage: "إدارة",
+                customize_background: "تخصيص الخلفية",
+                upload_custom_background: "تحميل خلفية مخصصة (حد أقصى 1 ميجابايت):",
+                upload_image: "تحميل صورة",
+                select_from_gallery: "اختر من المعرض:",
+                loading_gallery: "جارٍ تحميل المعرض...",
+                reset_background: "إعادة تعيين الخلفية:",
+                reset_to_default: "إعادة تعيين إلى الافتراضي",
+                ok: "موافق",
+                watch_ad: "شاهد إعلانًا قصيرًا لفتح التفسير الكامل!",
+                ad_message: "الإعلان قيد التشغيل... يرجى الانتظار.",
+                unlock_full_access: "فتح الوصول الكامل",
+                choose_plan: "اختر خطة للحصول على تفسيرات كاملة غير محدودة وميزات مميزة:",
+                one_time_purchase: "شراء لمرة واحدة",
+                one_time_desc: "احصل على تفسيرات كاملة إلى الأبد بدفعة واحدة.",
+                buy_for: "شراء مقابل 5.99 يورو",
+                premium_subscription: "اشتراك شهري مميز",
+                premium_desc: "فتح التفسيرات الكاملة وجميع الميزات المميزة.",
+                subscribe_for: "اشترك مقابل 4.99 يورو/شهريًا",
+                manage_your_subscription: "إدارة اشتراكك",
+                current_status: "حالة اشتراكك الحالية:",
+                cancel_subscription: "إلغاء الاشتراك",
+                free: "مجاني",
+                pro: "برو (مرة واحدة)",
+                premium: "مميز (شهري)",
+                upgrade_prompt_title: "الترقية لفتح الميزات!",
+                upgrade_prompt_message: "لقد وصلت إلى حد التفسير المجاني الخاص بك أو هذه ميزة مميزة. قم بالترقية للوصول غير المحدود والميزات المميزة!",
+                modal_error_title: "خطأ",
+                modal_success_title: "نجاح",
+                modal_upload_success: "تم تحميل صورة الخلفية بنجاح!",
+                modal_reset_success: "تم إعادة تعيين صورة الخلفية إلى الافتراضي!",
+                modal_subscription_success: "تم تحديث حالة الاشتراك!",
+                modal_purchase_success: "عملية الشراء ناجحة! لديك الآن وصول كامل.",
+                modal_cancel_success: "تم إلغاء الاشتراك بنجاح.",
+                modal_invalid_image: "ملف صورة غير صالح أو الحجم يتجاوز 1 ميجابايت.",
+                modal_google_sign_in_error: "فشل تسجيل الدخول بحساب Google: ",
+                signed_in_as: "تم تسجيل الدخول باسم",
+                sign_in_google: "تسجيل الدخول باستخدام Google",
+                sign_out: "تسجيل الخروج",
+                manage_plan: "إدارة الخطة",
+                interpretations_today: "تفسيرات اليوم:",
+                unlimited: "غير محدود",
+                upgrade_to_pro: "الترقية إلى برو (5.99 يورو لمرة واحدة)",
+                upgrade_to_premium: "الترقية إلى مميز (4.99 يورو/شهريًا)",
+                downgrade_to_free: "الرجوع إلى مجاني",
+                listening_to_dream: "أستمع... قل حلمك.",
+                partial_interpretation_message: "هذا تفسير جزئي. لفتح التفسير الكامل، يرجى مشاهدة إعلان قصير أو ترقية خطتك."
+            },
+            pt: { // Portuguese
+                app_title: "Intérprete de Sonhos com IA Oracle",
+                select_language: "Selecionar Idioma:",
+                english: "Inglês",
+                spanish: "Espanhol",
+                french: "Francês",
+                german: "Alemão",
+                greek: "Grego",
+                chinese_simplified: "Chinês Simplificado",
+                hindi: "Hindi",
+                arabic: "Árabe",
+                portuguese: "Português",
+                russian: "Russo",
+                japanese: "Japonês",
+                korean: "Coreano",
+                italian: "Italiano",
+                turkish: "Turco",
+                dutch: "Holandês",
+                polish: "Polonês",
+                swedish: "Sueco",
+                your_session_id: "Seu ID de Sessão:",
+                subscription_status: "Assinatura:",
+                describe_dream: "Descreva Seu Sonho:",
+                dream_input_placeholder: "Ex: Sonhei que estava voando sobre uma cidade de ouro...",
+                emotions_felt: "Emoções sentidas durante o sonho (separadas por vírgula):",
+                emotions_placeholder: "Ex: feliz, ansioso, confuso",
+                dream_tags: "Tags (separadas por vírgula):",
+                tags_placeholder: "Ex: voar, ouro, cidade, aventura",
+                interpret_dream: "Interpretar Sonho",
+                voice_input: "Entrada de Voz",
+                stop_voice: "Parar Voz",
+                interpretation: "Interpretação:",
+                interpretation_placeholder: "Sua interpretação do sonho aparecerá aqui.",
+                play: "Reproduzir",
+                pause: "Pausar",
+                stop: "Parar",
+                premium_features: "Recursos Premium",
+                dream_history: "Histórico de Sonhos:",
+                no_dreams_yet: "Nenhum sonho interpretado ainda.",
+                dream_trend_analysis: "Análise de Tendências de Sonhos",
+                trend_analysis_desc: "Identifique símbolos recorrentes e padrões emocionais em seus sonhos.",
+                view_trends: "Ver Tendências",
+                guided_dream_incubation: "Incubação de Sonhos Guiada",
+                incubation_desc: "Técnicas para influenciar seus sonhos para resolução de problemas ou criatividade.",
+                start_incubation: "Iniciar Incubação",
+                dream_symbol_encyclopedia: "Enciclopédia de Símbolos de Sonhos",
+                encyclopedia_desc: "Explore os significados dos símbolos de sonhos comuns.",
+                explore_symbols: "Explorar Símbolos",
+                manage_subscription: "Gerenciar Assinatura",
+                manage_subscription_desc: "Visualize e gerencie os detalhes da sua assinatura premium.",
+                manage: "Gerenciar",
+                customize_background: "Personalizar Plano de Fundo",
+                upload_custom_background: "Carregar Plano de Fundo Personalizado (Máx 1MB):",
+                upload_image: "Carregar Imagem",
+                select_from_gallery: "Selecionar da Galeria:",
+                loading_gallery: "Carregando galeria...",
+                reset_background: "Redefinir Plano de Fundo:",
+                reset_to_default: "Redefinir para o Padrão",
+                ok: "OK",
+                watch_ad: "Assista a um pequeno anúncio para desbloquear a interpretação completa!",
+                ad_message: "Anúncio sendo reproduzido... Por favor, aguarde.",
+                unlock_full_access: "Desbloquear Acesso Total",
+                choose_plan: "Escolha um plano para obter interpretações completas ilimitadas e recursos premium:",
+                one_time_purchase: "Compra Única",
+                one_time_desc: "Obtenha interpretações completas para sempre com um único pagamento.",
+                buy_for: "Comprar por €5.99",
+                premium_subscription: "Assinatura Mensal Premium",
+                premium_desc: "Desbloqueie interpretações completas e todos os recursos premium.",
+                subscribe_for: "Assinar por €4.99/mês",
+                manage_your_subscription: "Gerenciar Sua Assinatura",
+                current_status: "Seu status de assinatura atual:",
+                cancel_subscription: "Cancelar Assinatura",
+                free: "Grátis",
+                pro: "Pro (Compra Única)",
+                premium: "Premium (Mensal)",
+                upgrade_prompt_title: "Atualize para Desbloquear!",
+                upgrade_prompt_message: "Você atingiu seu limite de interpretações gratuitas ou este é um recurso premium. Atualize para acesso ilimitado e recursos premium!",
+                modal_error_title: "Erro",
+                modal_success_title: "Sucesso",
+                modal_upload_success: "Imagem de fundo carregada com sucesso!",
+                modal_reset_success: "Imagem de fundo redefinida para o padrão!",
+                modal_subscription_success: "Status da assinatura atualizado!",
+                modal_purchase_success: "Compra bem-sucedida! Você agora tem acesso total.",
+                modal_cancel_success: "Assinatura cancelada com sucesso.",
+                modal_invalid_image: "Arquivo de imagem inválido ou o tamanho excede 1MB.",
+                modal_google_sign_in_error: "Falha ao fazer login com o Google: ",
+                signed_in_as: "Logado como",
+                sign_in_google: "Entrar com o Google",
+                sign_out: "Sair",
+                manage_plan: "Gerenciar Plano",
+                interpretations_today: "Interpretações Hoje:",
+                unlimited: "Ilimitado",
+                upgrade_to_pro: "Atualizar para Pro (€5.99 Compra Única)",
+                upgrade_to_premium: "Atualizar para Premium (€4.99/mês)",
+                downgrade_to_free: "Rebaixar para Grátis",
+                listening_to_dream: "Ouvindo... Diga seu sonho.",
+                partial_interpretation_message: "Esta é uma interpretação parcial. Para desbloquear a interpretação completa, por favor, assista a um breve anúncio ou atualize seu plano."
+            },
+            ru: { // Russian
+                app_title: "Оракул ИИ Интерпретатор Снов",
+                select_language: "Выбрать язык:",
+                english: "Английский",
+                spanish: "Испанский",
+                french: "Французский",
+                german: "Немецкий",
+                greek: "Греческий",
+                chinese_simplified: "Упрощенный китайский",
+                hindi: "Хинди",
+                arabic: "Арабский",
+                portuguese: "Португальский",
+                russian: "Русский",
+                japanese: "Японский",
+                korean: "Корейский",
+                italian: "Итальянский",
+                turkish: "Турецкий",
+                dutch: "Голландский",
+                polish: "Польский",
+                swedish: "Шведский",
+                your_session_id: "Ваш идентификатор сессии:",
+                subscription_status: "Подписка:",
+                describe_dream: "Опишите свой сон:",
+                dream_input_placeholder: "Например: Мне приснилось, что я летел над золотым городом...",
+                emotions_felt: "Эмоции, испытанные во сне (через запятую):",
+                emotions_placeholder: "Например: счастливый, тревожный, смущенный",
+                dream_tags: "Теги (через запятую):",
+                tags_placeholder: "Например: полет, золото, город, приключение",
+                interpret_dream: "Интерпретировать сон",
+                voice_input: "Голосовой ввод",
+                stop_voice: "Остановить голос",
+                interpretation: "Интерпретация:",
+                interpretation_placeholder: "Здесь появится ваша интерпретация сна.",
+                play: "Воспроизвести",
+                pause: "Пауза",
+                stop: "Стоп",
+                premium_features: "Премиум-функции",
+                dream_history: "История снов:",
+                no_dreams_yet: "Сны еще не интерпретированы.",
+                dream_trend_analysis: "Анализ тенденций снов",
+                trend_analysis_desc: "Определяйте повторяющиеся символы и эмоциональные паттерны в ваших снах.",
+                view_trends: "Посмотреть тенденции",
+                guided_dream_incubation: "Управляемая инкубация снов",
+                incubation_desc: "Техники для влияния на ваши сны для решения проблем или творчества.",
+                start_incubation: "Начать инкубацию",
+                dream_symbol_encyclopedia: "Энциклопедия символов снов",
+                encyclopedia_desc: "Исследуйте значения общих символов снов.",
+                explore_symbols: "Исследовать символы",
+                manage_subscription: "Управление подпиской",
+                manage_subscription_desc: "Просмотр и управление деталями вашей премиум-подписки.",
+                manage: "Управлять",
+                customize_background: "Настроить фон",
+                upload_custom_background: "Загрузить пользовательский фон (макс. 1 МБ):",
+                upload_image: "Загрузить изображение",
+                select_from_gallery: "Выбрать из галереи:",
+                loading_gallery: "Загрузка галереи...",
+                reset_background: "Сбросить фон:",
+                reset_to_default: "Сбросить до стандартного",
+                ok: "ОК",
+                watch_ad: "Посмотрите короткую рекламу, чтобы разблокировать полную интерпретацию!",
+                ad_message: "Реклама воспроизводится... Пожалуйста, подождите.",
+                unlock_full_access: "Разблокировать полный доступ",
+                choose_plan: "Выберите план, чтобы получить неограниченные полные интерпретации и премиум-функции:",
+                one_time_purchase: "Единовременная покупка",
+                one_time_desc: "Получите полные интерпретации навсегда одним платежом.",
+                buy_for: "Купить за 5,99 €",
+                premium_subscription: "Премиум-подписка на месяц",
+                premium_desc: "Разблокируйте полные интерпретации и все премиум-функции.",
+                subscribe_for: "Подписаться за 4,99 €/месяц",
+                manage_your_subscription: "Управление вашей подпиской",
+                current_status: "Ваш текущий статус подписки:",
+                cancel_subscription: "Отменить подписку",
+                free: "Бесплатно",
+                pro: "Pro (Единовременная)",
+                premium: "Премиум (Ежемесячная)",
+                upgrade_prompt_title: "Обновите до Premium!",
+                upgrade_prompt_message: "Вы достигли лимита бесплатных интерпретаций или это премиум-функция. Обновите для неограниченного доступа и премиум-функций!",
+                modal_error_title: "Ошибка",
+                modal_success_title: "Успех",
+                modal_upload_success: "Фоновое изображение успешно загружено!",
+                modal_reset_success: "Фоновое изображение сброшено до стандартного!",
+                modal_subscription_success: "Статус подписки обновлен!",
+                modal_purchase_success: "Покупка прошла успешно! У вас теперь есть полный доступ.",
+                modal_cancel_success: "Подписка успешно отменена.",
+                modal_invalid_image: "Недопустимый файл изображения или размер превышает 1 МБ.",
+                modal_google_sign_in_error: "Ошибка входа через Google: ",
+                signed_in_as: "Вошли как",
+                sign_in_google: "Войти через Google",
+                sign_out: "Выйти",
+                manage_plan: "Управление планом",
+                interpretations_today: "Интерпретаций Сегодня:",
+                unlimited: "Неограниченно",
+                upgrade_to_pro: "Обновить до Pro (€5.99 Единовременно)",
+                upgrade_to_premium: "Обновить до Premium (€4.99/месяц)",
+                downgrade_to_free: "Перейти на бесплатный",
+                listening_to_dream: "Слушаю... Произнесите свой сон.",
+                partial_interpretation_message: "Это частичная интерпретация. Чтобы разблокировать полную интерпретацию, пожалуйста, посмотрите короткую рекламу или обновите свой план."
+            },
+            ja: { // Japanese
+                app_title: "オラクルAI夢占い",
+                select_language: "言語を選択:",
+                english: "英語",
+                spanish: "スペイン語",
+                french: "フランス語",
+                german: "ドイツ語",
+                greek: "ギリシャ語",
+                chinese_simplified: "簡体字中国語",
+                hindi: "ヒンディー語",
+                arabic: "アラビア語",
+                portuguese: "ポルトガル語",
+                russian: "ロシア語",
+                japanese: "日本語",
+                korean: "韓国語",
+                italian: "イタリア語",
+                turkish: "トルコ語",
+                dutch: "オランダ語",
+                polish: "ポーランド語",
+                swedish: "スウェーデン語",
+                your_session_id: "あなたのセッションID:",
+                subscription_status: "サブスクリプション:",
+                describe_dream: "あなたの夢を説明してください:",
+                dream_input_placeholder: "例: 黄金の都市の上を飛んでいる夢を見ました...",
+                emotions_felt: "夢の中で感じた感情（コンマ区切り）:",
+                emotions_placeholder: "例: 幸せ、不安、混乱",
+                dream_tags: "タグ（コンマ区切り）:",
+                tags_placeholder: "例: 飛行、ゴールド、都市、冒険",
+                interpret_dream: "夢を解釈",
+                voice_input: "音声入力",
+                stop_voice: "音声停止",
+                interpretation: "解釈:",
+                interpretation_placeholder: "あなたの夢の解釈がここに表示されます。",
+                play: "再生",
+                pause: "一時停止",
+                stop: "停止",
+                premium_features: "プレミアム機能",
+                dream_history: "夢の履歴:",
+                no_dreams_yet: "まだ夢は解釈されていません。",
+                dream_trend_analysis: "夢の傾向分析",
+                trend_analysis_desc: "夢の中の繰り返しのシンボルと感情パターンを特定します。",
+                view_trends: "傾向を表示",
+                guided_dream_incubation: "ガイド付き夢インキュベーション",
+                incubation_desc: "問題解決や創造性のために夢に影響を与えるテクニック。",
+                start_incubation: "インキュベーションを開始",
+                dream_symbol_encyclopedia: "夢のシンボル百科事典",
+                encyclopedia_desc: "一般的な夢のシンボルの意味を探る。",
+                explore_symbols: "シンボルを探る",
+                manage_subscription: "サブスクリプションの管理",
+                manage_subscription_desc: "プレミアムサブスクリプションの詳細を表示および管理します。",
+                manage: "管理",
+                customize_background: "背景をカスタマイズ",
+                upload_custom_background: "カスタム背景をアップロード (最大1MB):",
+                upload_image: "画像をアップロード",
+                select_from_gallery: "ギャラリーから選択:",
+                loading_gallery: "ギャラリーを読み込み中...",
+                reset_background: "背景をリセット:",
+                reset_to_default: "デフォルトにリセット",
+                ok: "OK",
+                watch_ad: "短い広告を視聴して、完全な解釈をアンロック！",
+                ad_message: "広告再生中...お待ちください。",
+                unlock_full_access: "フルアクセスをアンロック",
+                choose_plan: "無制限の完全な解釈とプレミアム機能を得るためのプランを選択してください:",
+                one_time_purchase: "一括購入",
+                one_time_desc: "1回の支払いで永久に完全な解釈を取得します。",
+                buy_for: "€5.99で購入",
+                premium_subscription: "プレミアム月額サブスクリプション",
+                premium_desc: "完全な解釈とすべてのプレミアム機能をアンロック。",
+                subscribe_for: "月額 €4.99で購読",
+                manage_your_subscription: "サブスクリプションの管理",
+                current_status: "現在のサブスクリプションステータス:",
+                cancel_subscription: "サブスクリプションをキャンセル",
+                free: "無料",
+                pro: "プロ（一括）",
+                premium: "プレミアム（月額）",
+                upgrade_prompt_title: "プレミアムにアップグレード！",
+                upgrade_prompt_message: "無料解釈の制限に達しました。無制限アクセスとプレミアム機能のためにアップグレードしてください！",
+                modal_error_title: "エラー",
+                modal_success_title: "成功",
+                modal_upload_success: "背景画像を正常にアップロードしました！",
+                modal_reset_success: "背景画像をデフォルトにリセットしました！",
+                modal_subscription_success: "サブスクリプションステータスが更新されました！",
+                modal_purchase_success: "購入成功！これでフルアクセスできます。",
+                modal_cancel_success: "サブスクリプションが正常にキャンセルされました。",
+                modal_invalid_image: "無効な画像ファイルまたはサイズが1MBを超えています。",
+                modal_google_sign_in_error: "Googleサインイン失敗: ",
+                signed_in_as: "としてログイン中",
+                sign_in_google: "Googleでサインイン",
+                sign_out: "サインアウト",
+                manage_plan: "プランを管理",
+                interpretations_today: "今日の解釈数:",
+                unlimited: "無制限",
+                upgrade_to_pro: "プロにアップグレード（€5.99一括）",
+                upgrade_to_premium: "プレミアムにアップグレード（€4.99/月）",
+                downgrade_to_free: "無料版にダウングレード",
+                listening_to_dream: "聞き取り中...夢を話してください。",
+                partial_interpretation_message: "これは部分的な解釈です。完全な解釈をアンロックするには、短い広告を視聴するか、プランをアップグレードしてください。"
+            },
+            ko: { // Korean
+                app_title: "오라클 AI 꿈 해몽가",
+                select_language: "언어 선택:",
+                english: "영어",
+                spanish: "스페인어",
+                french: "프랑스어",
+                german: "독일어",
+                greek: "그리스어",
+                chinese_simplified: "중국어 간체",
+                hindi: "힌디어",
+                arabic: "아랍어",
+                portuguese: "포르투갈어",
+                russian: "러시아어",
+                japanese: "일본어",
+                korean: "한국어",
+                italian: "이탈리아어",
+                turkish: "튀르키예어",
+                dutch: "네덜란드어",
+                polish: "폴란드어",
+                swedish: "스웨덴어",
+                your_session_id: "세션 ID:",
+                subscription_status: "구독:",
+                describe_dream: "꿈을 설명하세요:",
+                dream_input_placeholder: "예: 금빛 도시 위를 날아다니는 꿈을 꾸었습니다...",
+                emotions_felt: "꿈에서 느낀 감정 (쉼표로 구분):",
+                emotions_placeholder: "예: 행복한, 불안한, 혼란스러운",
+                dream_tags: "태그 (쉼표로 구분):",
+                tags_placeholder: "예: 비행, 금, 도시, 모험",
+                interpret_dream: "꿈 해몽하기",
+                voice_input: "음성 입력",
+                stop_voice: "음성 중지",
+                interpretation: "해몽:",
+                interpretation_placeholder: "당신의 꿈 해몽이 여기에 나타납니다.",
+                play: "재생",
+                pause: "일시 정지",
+                stop: "정지",
+                premium_features: "프리미엄 기능",
+                dream_history: "꿈 기록:",
+                no_dreams_yet: "아직 해몽된 꿈이 없습니다.",
+                dream_trend_analysis: "꿈 트렌드 분석",
+                trend_analysis_desc: "꿈에서 반복되는 상징과 감정 패턴을 식별합니다.",
+                view_trends: "트렌드 보기",
+                guided_dream_incubation: "가이드 꿈 인큐베이션",
+                incubation_desc: "문제 해결 또는 창의성을 위해 꿈에 영향을 미치는 기술.",
+                start_incubation: "인큐베이션 시작",
+                dream_symbol_encyclopedia: "꿈 상징 백과사전",
+                encyclopedia_desc: "일반적인 꿈 상징의 의미를 탐색합니다.",
+                explore_symbols: "상징 탐색",
+                manage_subscription: "구독 관리",
+                manage_subscription_desc: "프리미엄 구독 정보를 확인하고 관리하세요.",
+                manage: "관리",
+                customize_background: "배경 사용자 정의",
+                upload_custom_background: "사용자 정의 배경 업로드 (최대 1MB):",
+                upload_image: "이미지 업로드",
+                select_from_gallery: "갤러리에서 선택:",
+                loading_gallery: "갤러리 로드 중...",
+                reset_background: "배경 재설정:",
+                reset_to_default: "기본값으로 재설정",
+                ok: "확인",
+                watch_ad: "전체 해몽을 잠금 해제하려면 짧은 광고를 시청하세요!",
+                ad_message: "광고 재생 중... 잠시 기다려주세요.",
+                unlock_full_access: "전체 액세스 잠금 해제",
+                choose_plan: "무제한 전체 해몽 및 프리미엄 기능을 얻으려면 플랜을 선택하세요:",
+                one_time_purchase: "일회성 구매",
+                one_time_desc: "한 번의 결제로 영원히 전체 해몽을 얻으세요.",
+                buy_for: "€5.99에 구매",
+                premium_subscription: "프리미엄 월간 구독",
+                premium_desc: "전체 해몽 및 모든 프리미엄 기능을 잠금 해제하세요.",
+                subscribe_for: "월 €4.99에 구독",
+                manage_your_subscription: "구독 관리",
+                current_status: "현재 구독 상태:",
+                cancel_subscription: "구독 취소",
+                free: "무료",
+                pro: "프로 (일회성)",
+                premium: "프리미엄 (월간)",
+                upgrade_prompt_title: "잠금 해제를 위해 업그레이드하세요!",
+                upgrade_prompt_message: "무료 해몽 한도에 도달했거나 프리미엄 기능입니다. 무제한 액세스 및 프리미엄 기능을 위해 업그레이드하세요!",
+                modal_error_title: "오류",
+                modal_success_title: "성공",
+                modal_upload_success: "배경 이미지가 성공적으로 업로드되었습니다!",
+                modal_reset_success: "배경 이미지가 기본값으로 재설정되었습니다!",
+                modal_subscription_success: "구독 상태가 업데이트되었습니다!",
+                modal_purchase_success: "구매 성공! 이제 전체 액세스 권한이 있습니다.",
+                modal_cancel_success: "구독이 성공적으로 취소되었습니다.",
+                modal_invalid_image: "잘못된 이미지 파일 또는 크기가 1MB를 초과합니다.",
+                modal_google_sign_in_error: "Google 로그인 실패: ",
+                signed_in_as: "다음으로 로그인됨",
+                sign_in_google: "Google로 로그인",
+                sign_out: "로그아웃",
+                manage_plan: "플랜 관리",
+                interpretations_today: "오늘의 해몽:",
+                unlimited: "무제한",
+                upgrade_to_pro: "프로로 업그레이드 (€5.99 일회성)",
+                upgrade_to_premium: "프리미엄으로 업그레이드 (€4.99/월)",
+                downgrade_to_free: "무료로 다운그레이드",
+                listening_to_dream: "듣는 중... 꿈을 말해주세요.",
+                partial_interpretation_message: "이것은 부분적인 해몽입니다. 전체 해몽을 잠금 해제하려면 짧은 광고를 시청하거나 플랜을 업그레이드하십시오."
+            },
+            it: { // Italian
+                app_title: "Interprete di Sogni AI Oracle",
+                select_language: "Seleziona Lingua:",
+                english: "Inglese",
+                spanish: "Spagnolo",
+                french: "Francese",
+                german: "Tedesco",
+                greek: "Greco",
+                chinese_simplified: "Cinese Semplificato",
+                hindi: "Hindi",
+                arabic: "Arabo",
+                portuguese: "Portoghese",
+                russian: "Russo",
+                japanese: "Giapponese",
+                korean: "Coreano",
+                italian: "Italiano",
+                turkish: "Turco",
+                dutch: "Olandese",
+                polish: "Polacco",
+                swedish: "Svedese",
+                your_session_id: "Il tuo ID di sessione:",
+                subscription_status: "Abbonamento:",
+                describe_dream: "Descrivi il tuo sogno:",
+                dream_input_placeholder: "Es: Ho sognato di volare su una città d'oro...",
+                emotions_felt: "Emozioni provate durante il sogno (separate da virgola):",
+                emotions_placeholder: "Es: felice, ansioso, confuso",
+                dream_tags: "Tag (separati da virgola):",
+                tags_placeholder: "Es: volare, oro, città, avventura",
+                interpret_dream: "Interpreta Sogno",
+                voice_input: "Input Vocale",
+                stop_voice: "Ferma Voce",
+                interpretation: "Interpretazione:",
+                interpretation_placeholder: "La tua interpretazione del sogno apparirà qui.",
+                play: "Riproduci",
+                pause: "Pausa",
+                stop: "Ferma",
+                premium_features: "Funzioni Premium",
+                dream_history: "Cronologia Sogni:",
+                no_dreams_yet: "Nessun sogno interpretato finora.",
+                dream_trend_analysis: "Analisi delle Tendenze dei Sogni",
+                trend_analysis_desc: "Identifica simboli ricorrenti e schemi emotivi nei tuoi sogni.",
+                view_trends: "Visualizza Tendenze",
+                guided_dream_incubation: "Incubazione Guidata dei Sogni",
+                incubation_desc: "Tecniche per influenzare i tuoi sogni per la risoluzione dei problemi o la creatività.",
+                start_incubation: "Avvia Incubazione",
+                dream_symbol_encyclopedia: "Enciclopedia dei Simboli Onirici",
+                encyclopedia_desc: "Esplora i significati dei simboli onirici comuni.",
+                explore_symbols: "Esplora Simboli",
+                manage_subscription: "Gestisci Abbonamento",
+                manage_subscription_desc: "Visualizza e gestisci i dettagli del tuo abbonamento premium.",
+                manage: "Gestisci",
+                customize_background: "Personalizza Sfondo",
+                upload_custom_background: "Carica Sfondo Personalizzato (Max 1MB):",
+                upload_image: "Carica Immagine",
+                select_from_gallery: "Seleziona dalla Galleria:",
+                loading_gallery: "Caricamento galleria...",
+                reset_background: "Ripristina Sfondo:",
+                reset_to_default: "Ripristina ai Valori Predefiniti",
+                ok: "OK",
+                watch_ad: "Guarda un breve annuncio per sbloccare l'interpretazione completa!",
+                ad_message: "Annuncio in riproduzione... Attendi prego.",
+                unlock_full_access: "Sblocca Accesso Completo",
+                choose_plan: "Scegli un piano per ottenere interpretazioni complete illimitate e funzionalità premium:",
+                one_time_purchase: "Acquisto Una Tantum",
+                one_time_desc: "Ottieni interpretazioni complete per sempre con un unico pagamento.",
+                buy_for: "Acquista per €5.99",
+                premium_subscription: "Abbonamento Mensile Premium",
+                premium_desc: "Sblocca interpretazioni complete e tutte le funzionalità premium.",
+                subscribe_for: "Abbonati per €4.99/mese",
+                manage_your_subscription: "Gestisci il tuo abbonamento",
+                current_status: "Il tuo stato di abbonamento attuale:",
+                cancel_subscription: "Annulla Abbonamento",
+                free: "Gratuito",
+                pro: "Pro (Una Tantum)",
+                premium: "Premium (Mensile)",
+                upgrade_prompt_title: "Aggiorna per Sbloccare!",
+                upgrade_prompt_message: "Hai raggiunto il limite di interpretazioni gratuite o questa è una funzione premium. Aggiorna per accesso illimitato e funzionalità premium!",
+                modal_error_title: "Errore",
+                modal_success_title: "Successo",
+                modal_upload_success: "Immagine di sfondo caricata con successo!",
+                modal_reset_success: "Immagine di sfondo ripristinata ai valori predefiniti!",
+                modal_subscription_success: "Stato abbonamento aggiornato!",
+                modal_purchase_success: "Acquisto riuscito! Ora hai accesso completo.",
+                modal_cancel_success: "Abbonamento annullato con successo.",
+                modal_invalid_image: "File immagine non valido o dimensione superiore a 1MB.",
+                modal_google_sign_in_error: "Accesso Google fallito: ",
+                signed_in_as: "Accesso come",
+                sign_in_google: "Accedi con Google",
+                sign_out: "Esci",
+                manage_plan: "Gestisci Piano",
+                interpretations_today: "Interpretazioni Oggi:",
+                unlimited: "Illimitato",
+                upgrade_to_pro: "Aggiorna a Pro (€5.99 Una Tantum)",
+                upgrade_to_premium: "Aggiorna a Premium (€4.99/mese)",
+                downgrade_to_free: "Declassa a Gratuito",
+                listening_to_dream: "In ascolto... Dì il tuo sogno.",
+                partial_interpretation_message: "Questa è un'interpretazione parziale. Per sbloccare l'interpretazione completa, guarda un breve annuncio o aggiorna il tuo piano."
+            },
+            tr: { // Turkish
+                app_title: "Oracle AI Rüya Yorumcusu",
+                select_language: "Dil Seçiniz:",
+                english: "İngilizce",
+                spanish: "İspanyolca",
+                french: "Fransızca",
+                german: "Almanca",
+                greek: "Yunanca",
+                chinese_simplified: "Basitleştirilmiş Çince",
+                hindi: "Hintçe",
+                arabic: "Arapça",
+                portuguese: "Portekizce",
+                russian: "Rusça",
+                japanese: "Japonca",
+                korean: "Korece",
+                italian: "İtalyanca",
+                turkish: "Türkçe",
+                dutch: "Hollandaca",
+                polish: "Lehçe",
+                swedish: "İsveççe",
+                your_session_id: "Oturum Kimliğiniz:",
+                subscription_status: "Abonelik:",
+                describe_dream: "Rüyanızı Tanımlayın:",
+                dream_input_placeholder: "örn. Altın bir şehrin üzerinde uçtuğumu gördüm...",
+                emotions_felt: "Rüya sırasında hissedilen duygular (virgülle ayrılmış):",
+                emotions_placeholder: "örn. mutlu, endişeli, kafası karışık",
+                dream_tags: "Etiketler (virgülle ayrılmış):",
+                tags_placeholder: "örn. uçmak, altın, şehir, macera",
+                interpret_dream: "Rüyayı Yorumla",
+                voice_input: "Ses Girişi",
+                stop_voice: "Sesi Durdur",
+                interpretation: "Yorum:",
+                interpretation_placeholder: "Rüya yorumunuz burada görünecektir.",
+                play: "Oynat",
+                pause: "Duraklat",
+                stop: "Durdur",
+                premium_features: "Premium Özellikler",
+                dream_history: "Rüya Geçmişi:",
+                no_dreams_yet: "Henüz yorumlanmış rüya yok.",
+                dream_trend_analysis: "Rüya Trend Analizi",
+                trend_analysis_desc: "Rüyalarınızdaki tekrar eden sembolleri ve duygusal kalıpları belirleyin.",
+                view_trends: "Trendleri Görüntüle",
+                guided_dream_incubation: "Rehberli Rüya Kuluçkası",
+                incubation_desc: "Problem çözme veya yaratıcılık için rüyalarınızı etkileme teknikleri.",
+                start_incubation: "Kuluçkaya Başla",
+                dream_symbol_encyclopedia: "Rüya Sembolü Ansiklopedisi",
+                encyclopedia_desc: "Ortak rüya sembollerinin anlamlarını keşfedin.",
+                explore_symbols: "Sembolleri Keşfet",
+                manage_subscription: "Abonelik Yönetimi",
+                manage_subscription_desc: "Premium abonelik detaylarınızı görüntüleyin ve yönetin.",
+                manage: "Yönet",
+                customize_background: "Arka Planı Özelleştir",
+                upload_custom_background: "Özel Arka Plan Yükle (Max 1MB):",
+                upload_image: "Resim Yükle",
+                select_from_gallery: "Galeriden Seç:",
+                loading_gallery: "Galeri yükleniyor...",
+                reset_background: "Arka Planı Sıfırla:",
+                reset_to_default: "Varsayılana Sıfırla",
+                ok: "Tamam",
+                watch_ad: "Tam yorumu açmak için kısa bir reklam izleyin!",
+                ad_message: "Reklam oynatılıyor... Lütfen bekleyin.",
+                unlock_full_access: "Tam Erişimi Aç",
+                choose_plan: "Sınırsız tam yorum ve premium özellikler almak için bir plan seçin:",
+                one_time_purchase: "Tek Seferlik Satın Alma",
+                one_time_desc: "Tek ödeme ile sonsuza dek tam yorumlar alın.",
+                buy_for: "5.99 €'ya Satın Al",
+                premium_subscription: "Premium Aylık Abonelik",
+                premium_desc: "Tam yorumları ve tüm premium özellikleri açın.",
+                subscribe_for: "3.99 €/ay karşılığında abone ol",
+                manage_your_subscription: "Aboneliğinizi Yönetin",
+                current_status: "Mevcut abonelik durumunuz:",
+                cancel_subscription: "Aboneliği İptal Et",
+                free: "Ücretsiz",
+                pro: "Pro (Tek Seferlik)",
+                premium: "Premium (Aylık)",
+                upgrade_prompt_title: "Kilidi Açmak için Yükseltin!",
+                upgrade_prompt_message: "Ücretsiz yorum limitinize ulaştınız veya bu premium bir özelliktir. Sınırsız erişim ve premium özellikler için yükseltin!",
+                modal_error_title: "Hata",
+                modal_success_title: "Başarılı",
+                modal_upload_success: "Arka plan resmi başarıyla yüklendi!",
+                modal_reset_success: "Arka plan resmi varsayılana sıfırlandı!",
+                modal_subscription_success: "Abonelik durumu güncellendi!",
+                modal_purchase_success: "Satın alma başarılı! Artık tam erişiminiz var.",
+                modal_cancel_success: "Abonelik başarıyla iptal edildi.",
+                modal_invalid_image: "Geçersiz resim dosyası veya boyutu 1MB'ı aşıyor.",
+                modal_google_sign_in_error: "Google Oturum Açma Hatası: ",
+                signed_in_as: "Şu şekilde oturum açıldı:",
+                sign_in_google: "Google ile Oturum Aç",
+                sign_out: "Oturumu Kapat",
+                manage_plan: "Planı Yönet",
+                interpretations_today: "Bugünkü Yorumlar:",
+                unlimited: "Sınırsız",
+                upgrade_to_pro: "Pro'ya Yükselt (5.99 € Tek Seferlik)",
+                upgrade_to_premium: "Premium'a Yükselt (4.99 €/ay)",
+                downgrade_to_free: "Ücretsiz'e Düşür",
+                listening_to_dream: "Dinleniyor... Rüyanızı söyleyin.",
+                partial_interpretation_message: "Bu kısmi bir yorumdur. Tam yorumu açmak için lütfen kısa bir reklam izleyin veya planınızı yükseltin."
+            },
+            nl: { // Dutch
+                app_title: "Oracle AI Droomtolk",
+                select_language: "Taal Selecteren:",
+                english: "Engels",
+                spanish: "Spaans",
+                french: "Frans",
+                german: "Duits",
+                greek: "Grieks",
+                chinese_simplified: "Vereenvoudigd Chinees",
+                hindi: "Hindi",
+                arabic: "Arabisch",
+                portuguese: "Portugees",
+                russian: "Russisch",
+                japanese: "Japans",
+                korean: "Koreaans",
+                italian: "Italiaans",
+                turkish: "Turks",
+                dutch: "Nederlands",
+                polish: "Polski",
+                swedish: "Zweeds",
+                your_session_id: "Uw sessie-ID:",
+                subscription_status: "Abonnement:",
+                describe_dream: "Beschrijf Uw Droom:",
+                dream_input_placeholder: "bijv. Ik droomde dat ik over een stad van goud vloog...",
+                emotions_felt: "Emoties gevoeld tijdens droom (komma-gescheiden):",
+                emotions_placeholder: "bijv. blij, angstig, verward",
+                dream_tags: "Tags (komma-gescheiden):",
+                tags_placeholder: "bijv. vliegen, goud, stad, avontuur",
+                interpret_dream: "Droom Interpreteren",
+                voice_input: "Spraakinvoer",
+                stop_voice: "Spraak Stoppen",
+                interpretation: "Interpretatie:",
+                interpretation_placeholder: "Uw droominterpretatie verschijnt hier.",
+                play: "Afspelen",
+                pause: "Pauze",
+                stop: "Stop",
+                premium_features: "Premium Functies",
+                dream_history: "Droomgeschiedenis:",
+                no_dreams_yet: "Nog geen dromen geïnterpreteerd.",
+                dream_trend_analysis: "Droomtrendanalyse",
+                trend_analysis_desc: "Identificeer terugkerende symbolen en emotionele patronen in uw dromen.",
+                view_trends: "Trends bekijken",
+                guided_dream_incubation: "Begeleide Droomincubatie",
+                incubation_desc: "Technieken om uw dromen te beïnvloeden voor probleemoplossing of creativiteit.",
+                start_incubation: "Start Incubatie",
+                dream_symbol_encyclopedia: "Droomsymbool Encyclopedie",
+                encyclopedia_desc: "Verken de betekenissen van veelvoorkomende droomsymbolen.",
+                explore_symbols: "Symbolen verkennen",
+                manage_subscription: "Abonnement Beheren",
+                manage_subscription_desc: "Bekijk en beheer uw premium abonnementsgegevens.",
+                manage: "Beheren",
+                customize_background: "Achtergrond Aanpassen",
+                upload_custom_background: "Aangepaste Achtergrond Uploaden (Max 1MB):",
+                upload_image: "Afbeelding Uploaden",
+                select_from_gallery: "Selecteer uit Galerij:",
+                loading_gallery: "Galerij laden...",
+                reset_background: "Achtergrond Resetten:",
+                reset_to_default: "Terugzetten naar Standaard",
+                ok: "OK",
+                watch_ad: "Bekijk een korte advertentie om de volledige interpretatie te ontgrendelen!",
+                ad_message: "Advertentie wordt afgespeeld... Even geduld alstublieft.",
+                unlock_full_access: "Volledige Toegang Ontgrendelen",
+                choose_plan: "Kies een plan om onbeperkte volledige interpretaties en premium functies te krijgen:",
+                one_time_purchase: "Eenmalige Aankoop",
+                one_time_desc: "Krijg voor altijd volledige interpretaties met een eenmalige betaling.",
+                buy_for: "Kopen voor €5.99",
+                premium_subscription: "Premium Maandelijks Abonnement",
+                premium_desc: "Ontgrendel volledige interpretaties en alle premium functies.",
+                subscribe_for: "Abonneren voor €4.99/maand",
+                manage_your_subscription: "Uw abonnement beheren",
+                current_status: "Uw huidige abonnementsstatus:",
+                cancel_subscription: "Abonnement Opzeggen",
+                free: "Gratis",
+                pro: "Pro (Eenmalig)",
+                premium: "Premium (Maandelijks)",
+                upgrade_prompt_title: "Upgrade naar Ontgrendelen!",
+                upgrade_prompt_message: "U heeft uw gratis interpretatielimiet bereikt of dit is een premium functie. Upgrade voor onbeperkte toegang en premium functies!",
+                modal_error_title: "Fout",
+                modal_success_title: "Succes",
+                modal_upload_success: "Achtergrondafbeelding succesvol geüpload!",
+                modal_reset_success: "Achtergrondafbeelding is gereset naar standaard!",
+                modal_subscription_success: "Abonnementsstatus bijgewerkt!",
+                modal_purchase_success: "Aankoop succesvol! U heeft nu volledige toegang.",
+                modal_cancel_success: "Abonnement succesvol opgezegd.",
+                modal_invalid_image: "Ongeldig afbeeldingsbestand of de grootte overschrijdt 1MB.",
+                modal_google_sign_in_error: "Google aanmelding mislukt: ",
+                signed_in_as: "Aangemeld als",
+                sign_in_google: "Aanmelden met Google",
+                sign_out: "Afmelden",
+                manage_plan: "Plan beheren",
+                interpretations_today: "Interpretaties Vandaag:",
+                unlimited: "Onbeperkt",
+                upgrade_to_pro: "Upgrade naar Pro (€5.99 Eenmalig)",
+                upgrade_to_premium: "Upgrade naar Premium (€4.99/maand)",
+                downgrade_to_free: "Downgrade naar Gratis",
+                listening_to_dream: "Luisterend... Zeg uw droom.",
+                partial_interpretation_message: "Dit is een gedeeltelijke interpretatie. Om de volledige interpretatie te ontgrendelen, bekijk een korte advertentie of upgrade uw plan."
+            },
+            pl: { // Polish
+                app_title: "Oracle AI Interpretator Snów",
+                select_language: "Wybierz język:",
+                english: "Angielski",
+                spanish: "Hiszpański",
+                french: "Francuski",
+                german: "Niemiecki",
+                greek: "Grecki",
+                chinese_simplified: "Chiński Uproszczony",
+                hindi: "Hindi",
+                arabic: "Arabski",
+                portuguese: "Portugalski",
+                russian: "Rosyjski",
+                japanese: "Japoński",
+                korean: "Koreański",
+                italian: "Włoski",
+                turkish: "Turecki",
+                dutch: "Holenderski",
+                polish: "Polski",
+                swedish: "Szwedzki",
+                your_session_id: "Twój ID sesji:",
+                subscription_status: "Subskrypcja:",
+                describe_dream: "Opisz swój sen:",
+                dream_input_placeholder: "np. Śniło mi się, że leciałem nad miastem ze złota...",
+                emotions_felt: "Emocje odczuwane podczas snu (oddzielone przecinkami):",
+                emotions_placeholder: "np. szczęśliwy, niespokojny, zdezorientowany",
+                dream_tags: "Tagi (oddzielone przecinkami):",
+                tags_placeholder: "np. latanie, złoto, miasto, przygoda",
+                interpret_dream: "Interpretuj Sen",
+                voice_input: "Wprowadzanie Głosowe",
+                stop_voice: "Zatrzymaj Głos",
+                interpretation: "Interpretacja:",
+                interpretation_placeholder: "Twoja interpretacja snu pojawi się tutaj.",
+                play: "Odtwórz",
+                pause: "Pauza",
+                stop: "Stop",
+                premium_features: "Funkcje Premium",
+                dream_history: "Historia Snów:",
+                no_dreams_yet: "Brak zinterpretowanych snów.",
+                dream_trend_analysis: "Analiza Trendów Snów",
+                trend_analysis_desc: "Zidentyfikuj powtarzające się symbole i wzorce emocjonalne w swoich snach.",
+                view_trends: "Zobacz Trendy",
+                guided_dream_incubation: "Zarządzana Inkubacja Snów",
+                incubation_desc: "Techniki wpływania na sny w celu rozwiązywania problemów lub kreatywności.",
+                start_incubation: "Rozpocznij Inkubację",
+                dream_symbol_encyclopedia: "Encyklopedia Symboli Snów",
+                encyclopedia_desc: "Poznaj znaczenia popularnych symboli snów.",
+                explore_symbols: "Przeglądaj Symbole",
+                manage_subscription: "Zarządzaj Subskrypcją",
+                manage_subscription_desc: "Wyświetlaj i zarządzaj szczegółami swojej subskrypcji premium.",
+                manage: "Zarządzaj",
+                customize_background: "Dostosuj Tło",
+                upload_custom_background: "Prześlij Niestandardowe Tło (Max 1MB):",
+                upload_image: "Prześlij Obraz",
+                select_from_gallery: "Wybierz z Galerii:",
+                loading_gallery: "Ładowanie galerii...",
+                reset_background: "Zresetuj Tło:",
+                reset_to_default: "Przywróć Domyślne",
+                ok: "OK",
+                watch_ad: "Obejrzyj krótką reklamę, aby odblokować pełną interpretację!",
+                ad_message: "Reklama odtwarzana... Proszę czekać.",
+                unlock_full_access: "Odblokuj Pełny Dostęp",
+                choose_plan: "Wybierz plan, aby uzyskać nieograniczone pełne interpretacje i funkcje premium:",
+                one_time_purchase: "Jednorazowy Zakup",
+                one_time_desc: "Uzyskaj pełne interpretacje na zawsze za jednorazową płatność.",
+                buy_for: "Kup za 5,99 €",
+                premium_subscription: "Miesięczna Subskrypcja Premium",
+                premium_desc: "Odblokuj pełne interpretacje i wszystkie funkcje premium.",
+                subscribe_for: "Subskrybuj za 4,99 €/miesiąc",
+                manage_your_subscription: "Zarządzaj swoją subskrypcją",
+                current_status: "Twój obecny status subskrypcji:",
+                cancel_subscription: "Anuluj Subskrypcję",
+                free: "Darmowy",
+                pro: "Pro (Jednorazowy)",
+                premium: "Premium (Miesięczny)",
+                upgrade_prompt_title: "Uaktualnij, aby odblokować!",
+                upgrade_prompt_message: "Osiągnąłeś limit darmowych interpretacji lub jest to funkcja premium. Uaktualnij, aby uzyskać nieograniczony dostęp i funkcje premium!",
+                modal_error_title: "Błąd",
+                modal_success_title: "Sukces",
+                modal_upload_success: "Obraz tła pomyślnie przesłany!",
+                modal_reset_success: "Obraz tła przywrócony do domyślnego!",
+                modal_subscription_success: "Status subskrypcji zaktualizowany!",
+                modal_purchase_success: "Zakup udany! Masz teraz pełny dostęp.",
+                modal_cancel_success: "Subskrypcja została pomyślnie anulowana.",
+                modal_invalid_image: "Nieprawidłowy plik obrazu lub rozmiar przekracza 1MB.",
+                modal_google_sign_in_error: "Błąd logowania Google: ",
+                signed_in_as: "Zalogowano jako",
+                sign_in_google: "Zaloguj się przez Google",
+                sign_out: "Wyloguj się",
+                manage_plan: "Zarządzaj planem",
+                interpretations_today: "Interpretacje Dziś:",
+                unlimited: "Nieograniczony",
+                upgrade_to_pro: "Uaktualnij do Pro (€5.99 Jednorazowo)",
+                upgrade_to_premium: "Uaktualnij do Premium (€4.99/miesiąc)",
+                downgrade_to_free: "Zmień na Darmowy",
+                listening_to_dream: "Słucham... Powiedz swój sen.",
+                partial_interpretation_message: "To jest częściowa interpretacja. Aby odblokować pełną interpretację, obejrzyj krótką reklamę lub uaktualnij swój plan."
+            },
+            sv: { // Swedish
+                app_title: "Oracle AI Drömtolkare",
+                select_language: "Välj språk:",
+                english: "Engelska",
+                spanish: "Spanska",
+                french: "Franska",
+                german: "Tyska",
+                greek: "Grekiska",
+                chinese_simplified: "Förenklad kinesiska",
+                hindi: "Hindi",
+                arabic: "Arabiska",
+                portuguese: "Portugisiska",
+                russian: "Ryska",
+                japanese: "Japanska",
+                korean: "Koreanska",
+                italian: "Italienska",
+                turkish: "Turkiska",
+                dutch: "Holländska",
+                polish: "Polska",
+                swedish: "Svenska",
+                your_session_id: "Ditt sessions-ID:",
+                subscription_status: "Prenumeration:",
+                describe_dream: "Beskriv din dröm:",
+                dream_input_placeholder: "t.ex. Jag drömde att jag flög över en stad av guld...",
+                emotions_felt: "Känslor som kändes under drömmen (kommaavskilda):",
+                emotions_placeholder: "t.ex. glad, orolig, förvirrad",
+                dream_tags: "Taggar (kommaavskilda):",
+                tags_placeholder: "t.ex. flyga, guld, stad, äventyr",
+                interpret_dream: "Tolka dröm",
+                voice_input: "Röstinmatning",
+                stop_voice: "Stoppa röst",
+                interpretation: "Tolkning:",
+                interpretation_placeholder: "Din drömtolkning kommer att visas här.",
+                play: "Spela upp",
+                pause: "Pausa",
+                stop: "Stoppa",
+                premium_features: "Premiumfunktioner",
+                dream_history: "Drömhistorik:",
+                no_dreams_yet: "Inga drömmar har tolkats än.",
+                dream_trend_analysis: "Drömtendensanalys",
+                trend_analysis_desc: "Identifiera återkommande symboler och känslomönster i dina drömmar.",
+                view_trends: "Visa trender",
+                guided_dream_incubation: "Guidade drömincubation",
+                incubation_desc: "Tekniker för att påverka dina drömmar för problemlösning eller kreativitet.",
+                start_incubation: "Starta inkubation",
+                dream_symbol_encyclopedia: "Drömsymbolencyklopedi",
+                encyclopedia_desc: "Utforska betydelsen av vanliga drömsymboler.",
+                explore_symbols: "Utforska symboler",
+                manage_subscription: "Hantera prenumeration",
+                manage_subscription_desc: "Visa och hantera dina premium-prenumerationsdetaljer.",
+                manage: "Hantera",
+                customize_background: "Anpassa bakgrund",
+                upload_custom_background: "Ladda upp anpassad bakgrund (max 1MB):",
+                upload_image: "Ladda upp bild",
+                select_from_gallery: "Välj från galleri:",
+                loading_gallery: "Laddar galleri...",
+                reset_background: "Återställ bakgrund:",
+                reset_to_default: "Återställ till standard",
+                ok: "OK",
+                watch_ad: "Titta på en kort annons för att låsa upp fullständig tolkning!",
+                ad_message: "Annons spelas... Vänligen vänta.",
+                unlock_full_access: "Lås upp full åtkomst",
+                choose_plan: "Välj en plan för att få obegränsade fullständiga tolkningar och premiumfunktioner:",
+                one_time_purchase: "Engångsköp",
+                one_time_desc: "Få fullständiga tolkningar för alltid med en engångsbetalning.",
+                buy_for: "Köp för €5.99",
+                premium_subscription: "Premium månadsprenumeration",
+                premium_desc: "Lås upp fullständiga tolkningar och alla premiumfunktioner.",
+                subscribe_for: "Prenumerera för €4.99/månad",
+                manage_your_subscription: "Hantera din prenumeration",
+                current_status: "Din nuvarande prenumerationsstatus:",
+                cancel_subscription: "Avbryt prenumeration",
+                free: "Gratis",
+                pro: "Pro (Engångs)",
+                premium: "Premium (Månads)",
+                upgrade_prompt_title: "Lås upp genom att uppgradera!",
+                upgrade_prompt_message: "Du har nått din gräns för gratis tolkningar eller detta är en premiumfunktion. Uppgradera för obegränsad åtkomst och premiumfunktioner!",
+                modal_error_title: "Fel",
+                modal_success_title: "Framgång",
+                modal_upload_success: "Bakgrundsbilden laddades upp!",
+                modal_reset_success: "Bakgrundsbilden återställdes till standard!",
+                modal_subscription_success: "Prenumerationsstatus uppdaterad!",
+                modal_purchase_success: "Köpet lyckades! Du har nu full åtkomst.",
+                modal_cancel_success: "Prenumerationen avbröts.",
+                modal_invalid_image: "Ogiltig bildfil eller storleken överstiger 1 MB.",
+                modal_google_sign_in_error: "Google-inloggning misslyckades: ",
+                signed_in_as: "Inloggad som",
+                sign_in_google: "Logga in med Google",
+                sign_out: "Logga ut",
+                manage_plan: "Hantera plan",
+                interpretations_today: "Tolkningar Idag:",
+                unlimited: "Obegränsad",
+                upgrade_to_pro: "Uppgradera till Pro (€5.99 Engångs)",
+                upgrade_to_premium: "Uppgradera till Premium (€4.99/månad)",
+                downgrade_to_free: "Nedgradera till Gratis",
+                listening_to_dream: "Lyssnar... Säg din dröm.",
+                partial_interpretation_message: "Detta är en partiell tolkning. För att låsa upp den fullständiga tolkningen, vänligen titta på en kort annons eller uppgradera din plan."
+            }
+        };
+
+        // --- Gallery Images (Example - replace with actual URLs if desired) ---
+        const galleryImages = [
+            'https://placehold.co/1920x1080/2d3a51/e6edf3?text=Moonlight',
+            'https://placehold.co/1920x1080/3c3c3c/e6edf3?text=Starry+Night',
+            'https://placehold.co/1920x1080/1a1a2e/e6edf3?text=Cosmic',
+            'https://placehold.co/1920x1080/4b0082/e6edf3?text=Galaxy',
+            'https://placehold.co/1920x1080/000000/e6edf3?text=Abstract+Dream',
+            'https://placehold.co/1920x1080/5f4b8b/e6edf3?text=Aurora',
+        ];
+
+        // --- Helper Functions ---
+        function showCustomModal(titleKey, messageKey) {
+            modalTitle.textContent = translations[currentLanguage][titleKey];
+            modalMessage.textContent = translations[currentLanguage][messageKey];
+            customModal.style.display = 'flex';
+        }
+
+        function hideCustomModal() {
+            customModal.style.display = 'none';
+        }
+
+        function showAdModal() {
+            adModal.style.display = 'flex';
+            let adTimer = 5;
+            adTimerDisplay.textContent = adTimer;
+            adProgressBar.style.width = '100%';
+
+            const adInterval = setInterval(() => {
+                adTimer--;
+                adTimerDisplay.textContent = adTimer;
+                adProgressBar.style.width = `${(adTimer / 5) * 100}%`;
+                if (adTimer <= 0) {
+                    clearInterval(adInterval);
+                    adModal.style.display = 'none';
+                    // After ad, re-interpret to get full text
+                    interpretDream(true); // Pass true to indicate it's a full interpretation request after ad
+                }
+            }, 1000);
+        }
+
+        function showPurchaseModal() {
+            purchaseModal.style.display = 'flex';
+        }
+
+        function closePurchaseModal() {
+            purchaseModal.style.display = 'none';
+        }
+
+        function showManageSubscriptionModal() {
+            currentSubscriptionInfo.innerHTML = `${translations[currentLanguage].current_status} <span class="font-semibold text-green-400">${translations[currentLanguage][userSubscription.tier]}</span>`;
+
+            // Enable/disable buttons based on current tier
+            upgradeToProBtn.disabled = (userSubscription.tier === 'pro' || userSubscription.tier === 'premium');
+            upgradeToPremiumBtn.disabled = (userSubscription.tier === 'premium');
+            downgradeToFreeBtn.disabled = (userSubscription.tier === 'free');
+            cancelSubscriptionBtn.disabled = (userSubscription.tier === 'free'); // Only allow cancel if not free
+
+            manageSubscriptionModal.style.display = 'flex';
+        }
+
+        function closeManageSubscriptionModal() {
+            manageSubscriptionModal.style.display = 'none';
+        }
+
+        function applyTranslations() {
+            const elements = document.querySelectorAll('[data-lang-key]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-lang-key');
+                if (translations[currentLanguage] && translations[currentLanguage][key]) {
+                    if (element.tagName === 'INPUT' && element.hasAttribute('placeholder')) {
+                        element.setAttribute('placeholder', translations[currentLanguage][key]);
+                    } else if (element.tagName === 'TEXTAREA' && element.hasAttribute('placeholder')) {
+                        element.setAttribute('placeholder', translations[currentLanguage][key]);
+                    } else if (element.tagName === 'OPTION') {
+                        element.textContent = translations[currentLanguage][key];
+                    } else {
+                        element.textContent = translations[currentLanguage][key];
+                    }
+                }
+            });
+            // Update dynamic texts
+            document.getElementById('appTitle').textContent = translations[currentLanguage].app_title;
+            updateSubscriptionDisplay(); // Update subscription status text
+        }
+
+        function updateBackground(url) {
+            backgroundContainer.style.backgroundImage = `url('${url}')`;
+            localStorage.setItem('userBackground', url); // Save to local storage
+            // If user is logged in, also save to Firestore
+            if (currentUserId) {
+                db.collection('users').doc(currentUserId).update({ backgroundURL: url })
+                    .catch(error => console.error("Error saving background URL to Firestore:", error));
+            }
+        }
+
+        function setDefaultBackground() {
+            const defaultBgUrl = 'https://placehold.co/1920x1080/0d1117/e6edf3?text=Default+Moon+Background';
+            updateBackground(defaultBgUrl); // Use updateBackground to also save to local storage
+        }
+
+        function renderGalleryBackgrounds() {
+            if (galleryBackgroundsGrid) {
+                galleryBackgroundsGrid.innerHTML = ''; // Clear existing content
+                galleryImages.forEach(imageUrl => {
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.alt = 'Gallery Background';
+                    img.className = 'w-full h-28 object-cover rounded-lg shadow-md';
+                    img.onclick = () => {
+                        updateBackground(imageUrl);
+                        showCustomModal('modal_success_title', 'Background updated from gallery!'); // Add translation key
+                    };
+                    galleryBackgroundsGrid.appendChild(img);
+                });
+            }
+        }
+
+        // --- Feature Locking & UI Updates ---
+        function updateSubscriptionDisplay() {
+            subscriptionStatusDisplay.textContent = translations[currentLanguage][userSubscription.tier];
+            interpretationsToday.textContent = `${translations[currentLanguage].interpretations_today} ${userSubscription.interpretationsUsed} / ${userSubscription.maxInterpretations === Infinity ? translations[currentLanguage].unlimited : userSubscription.maxInterpretations}`;
+        }
+
+        function applyFeatureLocking() {
+            const isFree = userSubscription.tier === 'free';
+            const isPro = userSubscription.tier === 'pro';
+            const isPremium = userSubscription.tier === 'premium';
+
+            // Journaling fields
+            if (premiumJournalingFields) {
+                if (isPro || isPremium) {
+                    premiumJournalingFields.classList.remove('feature-locked', 'hidden');
+                    premiumJournalingFields.classList.add('flex');
+                } else {
+                    premiumJournalingFields.classList.add('feature-locked');
+                    premiumJournalingFields.classList.remove('flex');
+                    premiumJournalingFields.classList.add('hidden');
+                }
+                dreamEmotions.disabled = isFree;
+                dreamTags.disabled = isFree;
+            }
+
+            // Voice Input
+            if (startVoiceInputBtn && stopVoiceInputBtn) {
+                if (isPremium) {
+                    startVoiceInputBtn.classList.remove('feature-locked');
+                    startVoiceInputBtn.disabled = false;
+                } else {
+                    startVoiceInputBtn.classList.add('feature-locked');
+                    startVoiceInputBtn.disabled = true;
+                    stopVoiceInputBtn.classList.add('hidden'); // Hide stop button if voice input is locked
+                }
+            }
+
+            // Premium Features Section (History, Trend Analysis, etc.)
+            if (premiumFeaturesSection) {
+                if (isPro || isPremium) {
+                    premiumFeaturesSection.classList.remove('feature-locked', 'hidden');
+                    premiumFeaturesSection.classList.add('flex');
+                } else {
+                    premiumFeaturesSection.classList.add('feature-locked');
+                    premiumFeaturesSection.classList.remove('flex');
+                    premiumFeaturesSection.classList.add('hidden');
+                }
+            }
+
+            // Background Customization Section
+            if (backgroundCustomizationSection) {
+                if (isPremium) {
+                    backgroundCustomizationSection.classList.remove('feature-locked', 'hidden');
+                    backgroundCustomizationSection.classList.add('flex');
+                } else {
+                    backgroundCustomizationSection.classList.add('feature-locked');
+                    backgroundCustomizationSection.classList.remove('flex');
+                    backgroundCustomizationSection.classList.add('hidden');
+                }
+                customBackgroundUpload.disabled = !isPremium;
+                uploadBackgroundBtn.disabled = !isPremium;
+                resetBackgroundBtn.disabled = !isPremium;
+            }
+
+            // Individual Premium Feature Buttons (inside premiumFeaturesSection)
+            const premiumFeatureButtons = [trendAnalysisBtn, dreamIncubationBtn, symbolEncyclopediaBtn];
+            premiumFeatureButtons.forEach(btn => {
+                if (btn) {
+                    if (isPro || isPremium) {
+                        btn.classList.remove('feature-locked');
+                        btn.disabled = false;
+                    } else {
+                        btn.classList.add('feature-locked');
+                        btn.disabled = true;
+                    }
+                }
+            });
+
+            // Interpret button state
+            if (interpretationsToday) {
+                const currentCount = userSubscription.interpretationsUsed;
+                const maxCount = userSubscription.maxInterpretations;
+                if (isFree && currentCount >= maxCount) {
+                    submitDreamBtn.disabled = true;
+                } else if ((isPro || isPremium) && currentCount >= maxCount) {
+                     submitDreamBtn.disabled = true; // For Pro/Premium, if they hit their limit (3), disable
+                } else {
+                    submitDreamBtn.disabled = false;
+                }
+            }
+        }
+
+
+        // --- Firebase Functions ---
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                userIdDisplay.textContent = user.uid;
+                userDisplayName.textContent = user.displayName || user.email;
+                userProfilePic.src = user.photoURL || 'https://via.placeholder.com/40';
+                userSignedInInfo.classList.remove('hidden');
+                googleSignInBtn.classList.add('hidden');
+                console.log("User signed in:", user.uid);
+
+                await fetchUserData(user.uid); // Fetches subscription and other user data
+                await loadDreamHistory(user.uid);
+                await loadBackgroundsForUser(user.uid); // Load backgrounds specific to user
+
+            } else {
+                currentUserId = null;
+                userIdDisplay.textContent = translations[currentLanguage].your_session_id; // Display generic text
+                userSignedInInfo.classList.add('hidden');
+                googleSignInBtn.classList.remove('hidden');
+                console.log("User signed out.");
+
+                // Reset state for guest
+                userSubscription = {
+                    tier: 'free',
+                    interpretationsUsed: 0,
+                    maxInterpretations: 1,
+                    lastInterpretationDate: null
+                };
+                updateSubscriptionDisplay(); // Update display to free
+                interpretationOutput.innerHTML = `<span data-lang-key="interpretation_placeholder">${translations[currentLanguage].interpretation_placeholder}</span>`;
+                dreamHistoryList.innerHTML = `<span data-lang-key="no_dreams_yet">${translations[currentLanguage].no_dreams_yet}</span>`;
+                setDefaultBackground(); // Reset background to default for guest
+            }
+            applyTranslations(); // Ensure translations are applied after auth state change
+            applyFeatureLocking(); // Ensure feature locking is applied after auth state change
+        });
+
+        async function fetchUserData(uid) {
+            const userRef = db.collection('users').doc(uid);
+            try {
+                const doc = await userRef.get();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset to start of day for comparison
+
+                if (doc.exists) {
+                    const data = doc.data();
+                    let interpretationsUsed = data.interpretationsUsed || 0;
+                    const lastInterpretationDate = data.lastInterpretationDate ? data.lastInterpretationDate.toDate() : null;
+
+                    // Reset interpretationsUsed if it's a new day
+                    if (lastInterpretationDate && lastInterpretationDate.setHours(0, 0, 0, 0) < today.getTime()) {
+                        interpretationsUsed = 0;
+                        // Update Firestore to reset counter for the new day
+                        await userRef.update({ interpretationsUsed: 0, lastInterpretationDate: firebase.firestore.FieldValue.serverTimestamp() });
+                    }
+
+                    userSubscription = {
+                        tier: data.tier || 'free',
+                        interpretationsUsed: interpretationsUsed,
+                        maxInterpretations: data.maxInterpretations || (data.tier === 'pro' ? 3 : (data.tier === 'premium' ? Infinity : 1)),
+                        lastInterpretationDate: lastInterpretationDate
+                    };
+                    // Ensure maxInterpretations is correctly set for pro/premium as 3, and free as 1
+                    if (userSubscription.tier === 'pro' || userSubscription.tier === 'premium') {
+                        userSubscription.maxInterpretations = 3;
+                    } else {
+                        userSubscription.maxInterpretations = 1;
+                    }
+
+                    console.log("User data fetched:", userSubscription);
+                } else {
+                    // New user, create default data
+                    userSubscription = { tier: 'free', interpretationsUsed: 0, maxInterpretations: 1, lastInterpretationDate: null };
+                    await userRef.set({
+                        tier: userSubscription.tier,
+                        interpretationsUsed: userSubscription.interpretationsUsed,
+                        maxInterpretations: userSubscription.maxInterpretations,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastInterpretationDate: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    console.log("New user data created with free tier.");
+                }
+            } catch (error) {
+                console.error("Error fetching or creating user data:", error);
+                showCustomModal('modal_error_title', `Error fetching user data: ${error.message}`);
+            }
+            updateSubscriptionDisplay();
+        }
+
+        async function updateSubscriptionTier(uid, newTier) {
+            if (!uid) {
+                showCustomModal('modal_error_title', translations[currentLanguage].modal_google_sign_in_error);
+                return;
+            }
+            const userRef = db.collection('users').doc(uid);
+            try {
+                let newMaxInterpretations;
+                switch (newTier) {
+                    case 'free':
+                        newMaxInterpretations = 1;
+                        break;
+                    case 'pro': // One-time purchase
+                        newMaxInterpretations = 3;
+                        break;
+                    case 'premium': // Monthly subscription
+                        newMaxInterpretations = 3; // As per ai.txt
+                        break;
+                    default:
+                        newMaxInterpretations = 1;
+                }
+
+                await userRef.update({
+                    tier: newTier,
+                    maxInterpretations: newMaxInterpretations,
+                    interpretationsUsed: 0, // Reset interpretations on tier change
+                    lastSubscriptionChange: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                userSubscription.tier = newTier;
+                userSubscription.maxInterpretations = newMaxInterpretations;
+                userSubscription.interpretationsUsed = 0; // Update local state
+                updateSubscriptionDisplay(); // Update UI
+                hideCustomModal();
+                closePurchaseModal();
+                closeManageSubscriptionModal();
+                showCustomModal('modal_success_title', translations[currentLanguage].modal_subscription_success);
+                applyFeatureLocking(); // Re-apply feature locking
+                console.log(`Subscription updated to: ${newTier}`);
+            } catch (error) {
+                console.error("Error updating subscription tier:", error);
+                showCustomModal('modal_error_title', `Error updating subscription: ${error.message}`);
+            }
+        }
+
+        async function saveDreamInterpretation(dream, interpretation, isFullInterpretation) {
+            if (!currentUserId) {
+                console.warn("Not signed in, skipping dream save.");
+                return;
+            }
+
+            const dreamsCollectionRef = db.collection('users').doc(currentUserId).collection('dreams');
+            try {
+                await dreamsCollectionRef.add({
+                    dream: dream,
+                    interpretation: interpretation,
+                    emotions: dreamEmotions.value.split(',').map(e => e.trim()).filter(e => e),
+                    tags: dreamTags.value.split(',').map(t => t.trim()).filter(t => t),
+                    isFullInterpretation: isFullInterpretation,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    language: currentLanguage
+                });
+                console.log("Dream interpretation saved!");
+                loadDreamHistory(currentUserId); // Reload history to show new dream
+            } catch (error) {
+                console.error("Error saving dream:", error);
+                showCustomModal('modal_error_title', `Error saving dream: ${error.message}`);
+            }
+        }
+
+        async function loadDreamHistory(uid) {
+            if (!uid) {
+                dreamHistoryList.innerHTML = `<span data-lang-key="no_dreams_yet">${translations[currentLanguage].no_dreams_yet}</span>`;
+                return;
+            }
+
+            const dreamsCollectionRef = db.collection('users').doc(uid).collection('dreams');
+            try {
+                // Use onSnapshot for real-time updates, but for initial load, get() is fine too.
+                // For this scenario, let's use get() to avoid continuous listeners if not strictly needed
+                // and to avoid potential issues with orderBy() and missing indexes for onSnapshot
+                const querySnapshot = await dreamsCollectionRef.orderBy('timestamp', 'desc').limit(10).get();
+
+                if (querySnapshot.empty) {
+                    dreamHistoryList.innerHTML = `<span data-lang-key="no_dreams_yet">${translations[currentLanguage].no_dreams_yet}</span>`;
+                    return;
+                }
+
+                dreamHistoryList.innerHTML = ''; // Clear previous history
+                querySnapshot.forEach(doc => {
+                    const dreamData = doc.data();
+                    const timestamp = dreamData.timestamp ? new Date(dreamData.timestamp.toDate()).toLocaleString() : 'N/A';
+                    const dreamItem = document.createElement('div');
+                    dreamItem.className = 'history-item';
+                    dreamItem.innerHTML = `
+                        <p><strong>${translations[currentLanguage].describe_dream}:</strong> ${dreamData.dream}</p>
+                        <p><strong>${translations[currentLanguage].interpretation}:</strong> ${dreamData.interpretation.substring(0, 200)}...</p>
+                        ${dreamData.emotions && dreamData.emotions.length > 0 ? `<p><strong>${translations[currentLanguage].emotions_felt}:</strong> ${dreamData.emotions.join(', ')}</p>` : ''}
+                        ${dreamData.tags && dreamData.tags.length > 0 ? `<p><strong>${translations[currentLanguage].dream_tags}:</strong> ${dreamData.tags.join(', ')}</p>` : ''}
+                        <p class="text-xs text-gray-500 mt-1">${timestamp} (Lang: ${dreamData.language || 'N/A'})</p>
+                    `;
+                    dreamHistoryList.appendChild(dreamItem);
+                });
+            } catch (error) {
+                console.error("Error loading dream history:", error);
+                dreamHistoryList.innerHTML = `<span class="text-red-400">Error loading history: ${error.message}</span>`;
+            }
+        }
+
+        async function uploadCustomBackground(file) {
+            if (!currentUserId) {
+                showCustomModal('modal_error_title', translations[currentLanguage].modal_google_sign_in_error);
+                return;
+            }
+            if (file.size > 1024 * 1024) { // 1MB limit
+                showCustomModal('modal_error_title', translations[currentLanguage].modal_invalid_image);
+                return;
+            }
+
+            const storageRef = storage.ref();
+            const userBackgroundsRef = storageRef.child(`userBackgrounds/${currentUserId}/${file.name}`);
+
+            try {
+                await userBackgroundsRef.put(file);
+                const imageUrl = await userBackgroundsRef.getDownloadURL();
+                await db.collection('users').doc(currentUserId).update({
+                    backgroundURL: imageUrl // Use backgroundURL consistent with fetchUserData
+                });
+                updateBackground(imageUrl); // Update UI and local storage
+                showCustomModal('modal_success_title', translations[currentLanguage].modal_upload_success);
+            } catch (error) {
+                console.error("Error uploading background:", error);
+                showCustomModal('modal_error_title', `Error uploading image: ${error.message}`);
+            }
+        }
+
+        async function loadBackgroundsForUser(uid) {
+            try {
+                const userDoc = await db.collection('users').doc(uid).get();
+                if (userDoc.exists && userDoc.data().backgroundURL) { // Check for backgroundURL
+                    updateBackground(userDoc.data().backgroundURL);
+                } else {
+                    setDefaultBackground(); // Fallback to default if no custom background
+                }
+            } catch (error) {
+                console.error("Error loading user background:", error);
+                setDefaultBackground(); // Ensure a background is set even on error
+            }
+            renderGalleryBackgrounds(); // Always render gallery images
+        }
+
+        // --- Core Logic ---
+        async function interpretDream(afterAd = false) {
+            const dreamText = dreamInput.value.trim();
+            if (!dreamText) {
+                showCustomModal('modal_error_title', translations[currentLanguage].describe_dream_prompt);
+                return;
+            }
+
+            const isFree = userSubscription.tier === 'free';
+            const isPro = userSubscription.tier === 'pro';
+            const isPremium = userSubscription.tier === 'premium';
+
+            // Check limits only if not after an ad
+            if (!afterAd) {
+                if (isFree && userSubscription.interpretationsUsed >= userSubscription.maxInterpretations) {
+                    showCustomModal('upgrade_prompt_title', translations[currentLanguage].upgrade_prompt_message);
+                    showPurchaseModal();
+                    return;
+                }
+                if ((isPro || isPremium) && userSubscription.interpretationsUsed >= userSubscription.maxInterpretations) {
+                    showCustomModal('upgrade_prompt_title', translations[currentLanguage].upgrade_prompt_message); // Or a different message for paid users hitting limit
+                    return; // Don't show purchase modal for paid users hitting limit, just inform
+                }
+            }
+
+            submitDreamBtn.disabled = true;
+            submitDreamSpinner.classList.remove('hidden');
+            interpretationOutput.textContent = translations[currentLanguage].interpreting_dream;
+            stopSpeaking(); // Stop any ongoing speech
+
+            let finalInterpretation = '';
+            let isFullInterpretation = true;
+            let retries = 0;
+            const maxRetries = 3;
+            const baseDelay = 1000; // 1 second
+
+            try {
+                while (retries < maxRetries) {
+                    try {
+                        const prompt = `Interpret the following dream in ${translations[currentLanguage].english} and then translate the full interpretation into ${translations[currentLanguage][currentLanguage]}.
+                                        Dream: "${dreamText}"
+                                        ${dreamEmotions.value ? `Emotions felt: ${dreamEmotions.value}` : ''}
+                                        ${dreamTags.value ? `Tags: ${dreamTags.value}` : ''}
+                                        Provide a comprehensive interpretation first, then the translated version.`;
+
+                        let chatHistory = [];
+                        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                        const payload = { contents: chatHistory };
+                        const apiKey = "AIzaSyC-Ah3ijYTNIfV8mYlew7t-rdObSdEhAWY";
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            console.error("API Error Response:", errorData);
+                            throw new Error(`API error: ${response.status} ${response.statusText} - ${errorData.error?.message || 'Unknown error'}`);
+                        }
+
+                        const result = await response.json();
+
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            finalInterpretation = result.candidates[0].content.parts[0].text;
+                            break; // Exit loop on success
+                        } else {
+                            throw new Error("Invalid API response structure or no content.");
+                        }
+                    } catch (error) {
+                        console.error(`Attempt ${retries + 1} failed:`, error);
+                        retries++;
+                        if (retries < maxRetries) {
+                            const delay = baseDelay * Math.pow(2, retries - 1); // Exponential backoff
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        } else {
+                            throw error; // Re-throw error after max retries
+                        }
+                    }
+                }
+
+                // Apply partial interpretation logic for free users
+                if (isFree && !afterAd) {
+                    const words = finalInterpretation.split(' ');
+                    finalInterpretation = words.slice(0, Math.min(words.length, Math.floor(words.length * 0.4))).join(' ') + '... ' + translations[currentLanguage].partial_interpretation_message;
+                    isFullInterpretation = false;
+                }
+
+                interpretationOutput.textContent = finalInterpretation;
+                playInterpretationBtn.disabled = false;
+
+                // Increment count only if it's not a post-ad full interpretation
+                if (!afterAd) {
+                    if (currentUserId) {
+                        const userRef = db.collection('users').doc(currentUserId);
+                        await userRef.update({
+                            interpretationsUsed: firebase.firestore.FieldValue.increment(1),
+                            lastInterpretationDate: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        userSubscription.interpretationsUsed++; // Update local state
+                        updateSubscriptionDisplay(); // Update UI
+                    }
+                }
+
+                // If it's a free user and not after ad, offer to watch ad
+                if (isFree && !afterAd) {
+                    const adButton = document.createElement('button');
+                    adButton.textContent = translations[currentLanguage].watch_ad;
+                    adButton.className = 'btn btn-primary mt-4';
+                    adButton.onclick = showAdModal;
+                    interpretationOutput.appendChild(adButton);
+                }
+
+                // Save to Firestore
+                if (currentUserId && (isPro || isPremium || isFullInterpretation)) { // Only save full interpretations for paid, or full after ad for free
+                    saveDreamInterpretation(dreamText, finalInterpretation, isFullInterpretation);
+                }
+
+            } catch (error) {
+                console.error("Error interpreting dream:", error);
+                interpretationOutput.textContent = `Error: ${error.message}. Please try again.`;
+                showCustomModal('modal_error_title', `Error interpreting dream: ${error.message}`);
+            } finally {
+                submitDreamBtn.disabled = false;
+                submitDreamSpinner.classList.add('hidden');
+            }
+        }
+
+        // --- Text-to-Speech (TTS) Functions ---
+        function populateVoiceList() {
+            if (voicesLoaded) return;
+            const voices = synth.getVoices();
+            currentVoice = voices.find(voice => voice.lang.startsWith(currentLanguage)) ||
+                           voices.find(voice => voice.default);
+            if (currentVoice) {
+                console.log("Selected voice:", currentVoice.name, currentVoice.lang);
+            } else {
+                console.warn("No suitable voice found for", currentLanguage, ". Using default browser voice.");
+            }
+            voicesLoaded = true;
+        }
+
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = populateVoiceList;
+        } else {
+            populateVoiceList();
+        }
+
+        function speakInterpretation() {
+            stopSpeaking();
+            const text = interpretationOutput.textContent;
+            if (!text || text === translations[currentLanguage].interpretation_placeholder) {
+                return;
+            }
+
+            utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = currentLanguage;
+            if (currentVoice) {
+                utterance.voice = currentVoice;
+            }
+
+            utterance.onstart = () => {
+                isPlaying = true;
+                playInterpretationBtn.disabled = true;
+                pauseInterpretationBtn.disabled = false;
+                stopInterpretationBtn.disabled = false;
+            };
+
+            utterance.onend = () => {
+                isPlaying = false;
+                playInterpretationBtn.disabled = false;
+                pauseInterpretationBtn.disabled = true;
+                stopInterpretationBtn.disabled = true;
+            };
+
+            utterance.onerror = (event) => {
+                console.error('SpeechSynthesisUtterance.onerror', event);
+                isPlaying = false;
+                playInterpretationBtn.disabled = false;
+                pauseInterpretationBtn.disabled = true;
+                stopInterpretationBtn.disabled = true;
+                showCustomModal('modal_error_title', `TTS Error: ${event.error}. Your browser might not support this language or has no voices installed.`);
+            };
+
+            synth.speak(utterance);
+        }
+
+        function pauseSpeaking() {
+            if (isPlaying && synth.speaking) {
+                synth.pause();
+                isPlaying = false;
+                playInterpretationBtn.disabled = false;
+                pauseInterpretationBtn.disabled = true;
+            }
+        }
+
+        function stopSpeaking() {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            isPlaying = false;
+            playInterpretationBtn.disabled = false;
+            pauseInterpretationBtn.disabled = true;
+            stopInterpretationBtn.disabled = true;
+        }
+
+        // --- Speech Recognition Functions ---
+        function startVoiceInput() {
+            if (!('webkitSpeechRecognition' in window)) {
+                showCustomModal('modal_error_title', translations[currentLanguage].speech_recognition_not_supported);
+                return;
+            }
+
+            if (!userSubscription.tier === 'premium') { // Only premium can use voice input
+                showCustomModal('upgrade_prompt_title', translations[currentLanguage].upgrade_prompt_message);
+                showPurchaseModal();
+                return;
+            }
+
+            if (recognition && isRecognizing) {
+                recognition.stop();
+                return;
+            }
+
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = currentLanguage;
+
+            let finalTranscript = '';
+
+            recognition.onstart = () => {
+                isRecognizing = true;
+                startVoiceInputBtn.classList.add('hidden');
+                stopVoiceInputBtn.classList.remove('hidden');
+                dreamInput.placeholder = translations[currentLanguage].listening_to_dream;
+                dreamInput.value = '';
+                console.log('Speech recognition started');
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                dreamInput.value = finalTranscript + interimTranscript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                isRecognizing = false;
+                startVoiceInputBtn.classList.remove('hidden');
+                stopVoiceInputBtn.classList.add('hidden');
+                dreamInput.placeholder = translations[currentLanguage].dream_input_placeholder;
+                showCustomModal('modal_error_title', `${translations[currentLanguage].speech_recognition_error.replace('{error}', event.error)}`);
+            };
+
+            recognition.onend = () => {
+                isRecognizing = false;
+                startVoiceInputBtn.classList.remove('hidden');
+                stopVoiceInputBtn.classList.add('hidden');
+                dreamInput.placeholder = translations[currentLanguage].dream_input_placeholder;
+                console.log('Speech recognition ended.');
+                if (finalTranscript.trim() !== '') {
+                    dreamInput.value = finalTranscript.trim();
+                }
+            };
+
+            recognition.start();
+        }
+
+        function stopVoiceInput() {
+            if (recognition && isRecognizing) {
+                recognition.stop();
+                isRecognizing = false;
+                startVoiceInputBtn.classList.remove('hidden');
+                stopVoiceInputBtn.classList.add('hidden');
+                dreamInput.placeholder = translations[currentLanguage].dream_input_placeholder;
+                console.log('Manually stopped speech recognition.');
+            }
+        }
+
+        // --- Event Listeners ---
+        submitDreamBtn.addEventListener('click', () => interpretDream(false)); // Pass false for initial interpretation
+        playInterpretationBtn.addEventListener('click', speakInterpretation);
+        pauseInterpretationBtn.addEventListener('click', pauseSpeaking);
+        stopInterpretationBtn.addEventListener('click', stopSpeaking);
+        startVoiceInputBtn.addEventListener('click', startVoiceInput);
+        stopVoiceInputBtn.addEventListener('click', stopVoiceInput);
+
+        // Modal Close Buttons
+        closeModalButton.addEventListener('click', hideCustomModal);
+        modalOkButton.addEventListener('click', hideCustomModal);
+        window.addEventListener('click', (event) => {
+            if (event.target === customModal) {
+                hideCustomModal();
+            }
+            if (event.target === purchaseModal) {
+                closePurchaseModal();
+            }
+            if (event.target === manageSubscriptionModal) {
+                closeManageSubscriptionModal();
+            }
+        });
+
+        closePurchaseModalButton.addEventListener('click', closePurchaseModal);
+        closeManageSubscriptionModalButton.addEventListener('click', closeManageSubscriptionModal);
+
+        // Purchase Buttons (Simulated)
+        buyOneTimeBtn.addEventListener('click', async () => {
+            closePurchaseModal();
+            if (currentUserId) {
+                await updateSubscriptionTier(currentUserId, 'pro'); // 'pro' for one-time
+                showCustomModal('modal_success_title', translations[currentLanguage].modal_purchase_success);
+            } else {
+                showCustomModal('modal_error_title', translations[currentLanguage].modal_google_sign_in_error);
+            }
+        });
+
+        subscribePremiumBtn.addEventListener('click', async () => {
+            closePurchaseModal();
+            if (currentUserId) {
+                await updateSubscriptionTier(currentUserId, 'premium');
+                showCustomModal('modal_success_title', translations[currentLanguage].modal_purchase_success);
+            } else {
+                showCustomModal('modal_error_title', translations[currentLanguage].modal_google_sign_in_error);
+            }
+        });
+
+        // Manage Subscription Buttons
+        document.getElementById('managePlanBtn').addEventListener('click', showManageSubscriptionModal);
+
+        upgradeToProBtn.addEventListener('click', async () => {
+            if (currentUserId) {
+                await updateSubscriptionTier(currentUserId, 'pro');
+            } else {
+                showCustomModal('modal_error_title', translations[currentLanguage].modal_google_sign_in_error);
+            }
+        });
+
+        upgradeToPremiumBtn.addEventListener('click', async () => {
+            if (currentUserId) {
+                await updateSubscriptionTier(currentUserId, 'premium');
+            } else {
+                showCustomModal('modal_error_title', translations[currentLanguage].modal_google_sign_in_error);
+            }
+        });
+
+        downgradeToFreeBtn.addEventListener('click', async () => {
+            if (currentUserId) {
+                await updateSubscriptionTier(currentUserId, 'free');
+            } else {
+                showCustomModal('modal_error_title', translations[currentLanguage].modal_google_sign_in_error);
+            }
+        });
+
+        cancelSubscriptionBtn.addEventListener('click', async () => {
+            if (currentUserId) {
+                // For this simulation, 'cancel' means downgrading to free
+                await updateSubscriptionTier(currentUserId, 'free');
+                showCustomModal('modal_success_title', translations[currentLanguage].modal_cancel_success);
+            } else {
+                showCustomModal('modal_error_title', translations[currentLanguage].modal_google_sign_in_error);
+            }
+        });
+
+        // Background Customization
+        uploadBackgroundBtn.addEventListener('click', () => {
+            customBackgroundUpload.click(); // Trigger file input click
+        });
+
+        customBackgroundUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                uploadCustomBackground(file);
+            }
+        });
+
+        resetBackgroundBtn.addEventListener('click', setDefaultBackground);
+
+        // Language Selection
+        languageSelect.addEventListener('change', (event) => {
+            currentLanguage = event.target.value;
+            localStorage.setItem('appLanguage', currentLanguage); // Save preference
+            applyTranslations();
+            populateVoiceList(); // Re-select voice for new language
+            // Re-initialize speech recognition for new language
+            if (isRecognizing) { // If active, restart with new language
+                stopVoiceInput();
+                startVoiceInput();
+            }
+        });
+
+        // Initialize language and features on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial language select value
+            languageSelect.value = currentLanguage;
+            applyTranslations(); // Apply initial translations
+            populateVoiceList(); // Load voices for initial language
+
+            // Attach Google Sign-In
+            googleSignInBtn.addEventListener('click', async () => {
+                try {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    await auth.signInWithPopup(provider);
+                } catch (error) {
+                    console.error("Google Sign-In Error:", error);
+                    showCustomModal('modal_error_title', `${translations[currentLanguage].modal_google_sign_in_error}${error.message}`);
+                }
+            });
+
+            // Attach Sign-Out
+            signOutBtn.addEventListener('click', async () => {
+                try {
+                    await auth.signOut();
+                } catch (error) {
+                    console.error("Sign Out Error:", error);
+                    showCustomModal('modal_error_title', `Sign Out Error: ${error.message}`);
+                }
+            });
+            // Initial load of background (will be overridden by user-specific if signed in)
+            setDefaultBackground();
+        });
+    </script>
+</body>
+</html>
+```
